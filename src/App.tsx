@@ -1,0 +1,20 @@
+import { BrowserRouter as Router } from 'react-router-dom'
+import Navbar from './components/Navbar'
+import Footer from './components/Footer'
+import Home from './pages/Home'
+
+function App() {
+  return (
+    <Router>
+      <div className="bg-amm-dark min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-grow pt-16">
+          <Home />
+        </main>
+        <Footer />
+      </div>
+    </Router>
+  )
+}
+
+export default App

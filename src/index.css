@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'PT Sans', sans-serif;
+}
+
+body {
+  background-color: #151515;
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .clipped-button {
+    @apply relative inline-block font-bold uppercase text-sm px-6 py-3 transition-all duration-200;
+    clip-path: polygon(10px 0%, 100% 0%, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0% 100%, 0% 10px);
+  }
+
+  .clipped-button-orange {
+    @apply clipped-button bg-amm-orange text-white hover:bg-opacity-90;
+  }
+
+  .clipped-button-white {
+    @apply clipped-button bg-white text-amm-dark hover:bg-opacity-90;
+  }
+
+  .glass-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+}
