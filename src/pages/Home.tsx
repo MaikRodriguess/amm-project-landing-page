@@ -1,7 +1,7 @@
 import ClippedButton from '../components/ClippedButton'
 import { CheckCircle, Users, Heart, Zap, ExternalLink, Download, FileText, BookOpen } from 'lucide-react'
 
-const VIDEO_URL = 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/Corte-Site-Fundo.mp4'
+const VIDEO_URL = 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/video_pagina.mp4'
 
 export default function Home() {
   const scrollToSection = (sectionId: string) => {
@@ -67,28 +67,31 @@ export default function Home() {
               <div className="flex items-center gap-4 pt-2">
                 <p className="text-white text-sm uppercase font-bold">Siga-nos:</p>
                 <a
-                  href="https://www.instagram.com/ministerio.amm.brasil.mc/"
+                  href="https://www.youtube.com/c/AMMBrasil"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-amm-orange text-black p-3 rounded-full hover:bg-opacity-80 transition transform hover:scale-110 text-2xl"
+                  className="hover:opacity-80 transition transform hover:scale-110"
+                  title="YouTube"
                 >
-                  📷
+                  <img src="https://cdn-icons-png.flaticon.com/512/187/187209.png" alt="YouTube" className="h-10 w-10" />
                 </a>
                 <a
                   href="https://www.facebook.com/brasil.amm"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-amm-orange text-black p-3 rounded-full hover:bg-opacity-80 transition transform hover:scale-110 text-2xl"
+                  className="hover:opacity-80 transition transform hover:scale-110"
+                  title="Facebook"
                 >
-                  f
+                  <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="h-10 w-10" />
                 </a>
                 <a
-                  href="https://www.youtube.com/c/AMMBrasil"
+                  href="https://www.instagram.com/ministerio.amm.brasil.mc/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-amm-orange text-black p-3 rounded-full hover:bg-opacity-80 transition transform hover:scale-110 text-2xl"
+                  className="hover:opacity-80 transition transform hover:scale-110"
+                  title="Instagram"
                 >
-                  ▶
+                  <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" className="h-10 w-10" />
                 </a>
               </div>
             </div>
@@ -374,20 +377,20 @@ export default function Home() {
               <h2 className="text-3xl font-bold text-amm-orange mb-10 uppercase">Redes Sociais</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Instagram */}
+                {/* YouTube */}
                 <a
-                  href="https://www.instagram.com/ministerio.amm.brasil.mc/"
+                  href="https://www.youtube.com/c/AMMBrasil"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-gradient-to-br from-pink-500 to-purple-600 p-8 rounded-lg hover:shadow-xl transition transform hover:scale-105"
+                  className="bg-red-600 p-8 rounded-lg hover:shadow-xl transition transform hover:scale-105"
                 >
                   <div className="flex items-center gap-4 mb-4">
-                    <span className="text-5xl">📷</span>
-                    <h3 className="text-2xl font-bold">Instagram</h3>
+                    <img src="https://cdn-icons-png.flaticon.com/512/187/187209.png" alt="YouTube" className="h-12 w-12" />
+                    <h3 className="text-2xl font-bold">YouTube</h3>
                   </div>
-                  <p className="text-sm text-gray-100 mb-4">Siga-nos para atualizações diárias, fotos e vídeos dos nossos eventos.</p>
+                  <p className="text-sm text-gray-100 mb-4">Assista nossos moto cultos, palestras e conteúdo exclusivo.</p>
                   <p className="text-white font-bold flex items-center gap-2">
-                    @ministerio.amm.brasil.mc <ExternalLink size={16} />
+                    AMM Brasil <ExternalLink size={16} />
                   </p>
                 </a>
 
@@ -399,7 +402,7 @@ export default function Home() {
                   className="bg-blue-600 p-8 rounded-lg hover:shadow-xl transition transform hover:scale-105"
                 >
                   <div className="flex items-center gap-4 mb-4">
-                    <span className="text-5xl">f</span>
+                    <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="h-12 w-12" />
                     <h3 className="text-2xl font-bold">Facebook</h3>
                   </div>
                   <p className="text-sm text-gray-100 mb-4">Acompanhe nossos eventos, notícias e interaja com a comunidade.</p>
@@ -408,20 +411,20 @@ export default function Home() {
                   </p>
                 </a>
 
-                {/* YouTube */}
+                {/* Instagram */}
                 <a
-                  href="https://www.youtube.com/c/AMMBrasil"
+                  href="https://www.instagram.com/ministerio.amm.brasil.mc/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-red-600 p-8 rounded-lg hover:shadow-xl transition transform hover:scale-105"
+                  className="bg-gradient-to-br from-pink-500 to-purple-600 p-8 rounded-lg hover:shadow-xl transition transform hover:scale-105"
                 >
                   <div className="flex items-center gap-4 mb-4">
-                    <span className="text-5xl">▶</span>
-                    <h3 className="text-2xl font-bold">YouTube</h3>
+                    <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" className="h-12 w-12" />
+                    <h3 className="text-2xl font-bold">Instagram</h3>
                   </div>
-                  <p className="text-sm text-gray-100 mb-4">Assista nossos moto cultos, palestras e conteúdo exclusivo.</p>
+                  <p className="text-sm text-gray-100 mb-4">Siga-nos para atualizações diárias, fotos e vídeos dos nossos eventos.</p>
                   <p className="text-white font-bold flex items-center gap-2">
-                    AMM Brasil <ExternalLink size={16} />
+                    @ministerio.amm.brasil.mc <ExternalLink size={16} />
                   </p>
                 </a>
               </div>
