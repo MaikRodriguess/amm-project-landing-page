@@ -70,28 +70,34 @@ export default function Home() {
                   href="https://www.youtube.com/c/AMMBrasil"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:opacity-80 transition transform hover:scale-110"
+                  className="bg-amm-orange p-3 rounded-full hover:bg-opacity-80 transition transform hover:scale-110"
                   title="YouTube"
                 >
-                  <img src="https://cdn-icons-png.flaticon.com/512/187/187209.png" alt="YouTube" className="h-10 w-10" />
+                  <svg className="h-6 w-6" fill="white" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
                 </a>
                 <a
                   href="https://www.facebook.com/brasil.amm"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:opacity-80 transition transform hover:scale-110"
+                  className="bg-amm-orange p-3 rounded-full hover:bg-opacity-80 transition transform hover:scale-110"
                   title="Facebook"
                 >
-                  <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="h-10 w-10" />
+                  <svg className="h-6 w-6" fill="white" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
                 </a>
                 <a
                   href="https://www.instagram.com/ministerio.amm.brasil.mc/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:opacity-80 transition transform hover:scale-110"
+                  className="bg-amm-orange p-3 rounded-full hover:bg-opacity-80 transition transform hover:scale-110"
                   title="Instagram"
                 >
-                  <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" className="h-10 w-10" />
+                  <svg className="h-6 w-6" fill="white" viewBox="0 0 24 24">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.192a5.81 5.81 0 1 1 0 11.616 5.81 5.81 0 0 1 0-11.616zm0 1.44a4.368 4.368 0 1 0 0 8.736 4.368 4.368 0 0 0 0-8.736zm8.288-1.584a1.44 1.44 0 1 1 0 2.88 1.44 1.44 0 0 1 0-2.88z"/>
+                  </svg>
                 </a>
               </div>
             </div>
@@ -385,7 +391,9 @@ export default function Home() {
                   className="bg-red-600 p-8 rounded-lg hover:shadow-xl transition transform hover:scale-105"
                 >
                   <div className="flex items-center gap-4 mb-4">
-                    <img src="https://cdn-icons-png.flaticon.com/512/187/187209.png" alt="YouTube" className="h-12 w-12" />
+                    <svg className="h-12 w-12" fill="white" viewBox="0 0 24 24">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
                     <h3 className="text-2xl font-bold">YouTube</h3>
                   </div>
                   <p className="text-sm text-gray-100 mb-4">Assista nossos moto cultos, palestras e conteúdo exclusivo.</p>
@@ -402,7 +410,9 @@ export default function Home() {
                   className="bg-blue-600 p-8 rounded-lg hover:shadow-xl transition transform hover:scale-105"
                 >
                   <div className="flex items-center gap-4 mb-4">
-                    <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="h-12 w-12" />
+                    <svg className="h-12 w-12" fill="white" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
                     <h3 className="text-2xl font-bold">Facebook</h3>
                   </div>
                   <p className="text-sm text-gray-100 mb-4">Acompanhe nossos eventos, notícias e interaja com a comunidade.</p>
@@ -419,7 +429,9 @@ export default function Home() {
                   className="bg-gradient-to-br from-pink-500 to-purple-600 p-8 rounded-lg hover:shadow-xl transition transform hover:scale-105"
                 >
                   <div className="flex items-center gap-4 mb-4">
-                    <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" className="h-12 w-12" />
+                    <svg className="h-12 w-12" fill="white" viewBox="0 0 24 24">
+                      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 2.192a5.81 5.81 0 1 1 0 11.616 5.81 5.81 0 0 1 0-11.616zm0 1.44a4.368 4.368 0 1 0 0 8.736 4.368 4.368 0 0 0 0-8.736zm8.288-1.584a1.44 1.44 0 1 1 0 2.88 1.44 1.44 0 0 1 0-2.88z"/>
+                    </svg>
                     <h3 className="text-2xl font-bold">Instagram</h3>
                   </div>
                   <p className="text-sm text-gray-100 mb-4">Siga-nos para atualizações diárias, fotos e vídeos dos nossos eventos.</p>
