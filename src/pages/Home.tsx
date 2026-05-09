@@ -6,6 +6,24 @@ const VIDEO_URL = 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/pu
 
 const BOOKS: Book[] = [
   {
+    id: 'contagem-regressiva',
+    title: 'Contagem Regressiva',
+    author: 'Alejandro Bullón',
+    image: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/2026%20-%20Contagem%20regressiva/capa_contagem_regressiva.png',
+    links: [
+      {
+        type: 'pdf',
+        label: 'PDF',
+        url: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/2026%20-%20Contagem%20regressiva/contagem_regressiva.pdf',
+      },
+      {
+        type: 'epub',
+        label: 'EPUB',
+        url: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/2026%20-%20Contagem%20regressiva/contagem_regressiva.epub',
+      },
+    ],
+  },
+  {
     id: 'chave-virada',
     title: 'A Chave da Virada',
     author: 'Marcello Niek & Bruno Raso',
@@ -35,24 +53,6 @@ const BOOKS: Book[] = [
         type: 'libras',
         label: 'Libras',
         url: 'https://www.youtube.com/watch?v=CFG7C0sJtWM&list=PLk1ZymRnXuZR1WNESYyrREemxYBN8hXQi&index=1',
-      },
-    ],
-  },
-  {
-    id: 'contagem-regressiva',
-    title: 'Contagem Regressiva',
-    author: 'Alejandro Bullón',
-    image: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/2026%20-%20Contagem%20regressiva/capa_contagem_regressiva.png',
-    links: [
-      {
-        type: 'pdf',
-        label: 'PDF',
-        url: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/2026%20-%20Contagem%20regressiva/contagem_regressiva.pdf',
-      },
-      {
-        type: 'epub',
-        label: 'EPUB',
-        url: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/2026%20-%20Contagem%20regressiva/contagem_regressiva.epub',
       },
     ],
   },
