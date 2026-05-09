@@ -1,6 +1,7 @@
 import ClippedButton from '../components/ClippedButton'
 import { BooksCarousel, type Book } from '../components/BooksCarousel'
 import { CheckCircle, Users, Heart, Zap, ExternalLink } from 'lucide-react'
+import { EventsSection } from '../components/EventsSection'
 
 const VIDEO_URL = 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/video_pagina.mp4'
 
@@ -95,9 +96,13 @@ export default function Home() {
             </p>
 
             {/* Headline */}
-            <h1 className="text-4xl md:text-6xl font-bold uppercase leading-tight mb-6 text-white">
+            <h1 className="text-4xl md:text-6xl font-bold uppercase leading-tight mb-2 text-white">
               AMM Brasil MC
             </h1>
+
+            <p className="text-white text-base md:text-lg font-medium mb-6 tracking-wide">
+              📍 Rondônia
+            </p>
 
             {/* Tagline */}
             <p className="text-xl md:text-2xl font-light text-amm-orange mb-8">
@@ -169,6 +174,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Eventos Section */}
+      <EventsSection />
 
       {/* Materiais Section */}
       <section id="materiais" className="min-h-screen bg-amm-dark text-white">
