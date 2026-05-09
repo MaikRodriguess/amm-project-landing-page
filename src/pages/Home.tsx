@@ -134,7 +134,8 @@ export default function Home() {
 
             {/* Description */}
             <p className="text-base md:text-lg text-gray-200 max-w-lg mb-8 leading-relaxed">
-              Ministério dos Motociclistas Adventistas. Rodando para salvar vidas através da fé e paixão pelas motos.
+              Então vi outro anjo, que voava pelo céu e tinha na mão o evangelho eterno para proclamar aos que habitam na terra, a toda nação, tribo, língua e povo. (…)<br />
+              <span className="text-amm-orange font-semibold">Apocalipse 14:6-11</span>
             </p>
 
             {/* CTA Buttons */}
