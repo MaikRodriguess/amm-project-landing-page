@@ -57,6 +57,29 @@ const BOOKS: Book[] = [
       },
     ],
   },
+  {
+    id: 'grande-conflito',
+    title: 'O Grande Conflito',
+    author: 'Ellen G. White',
+    image: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/O%20Grande%20Conflito/capa.png',
+    links: [
+      {
+        type: 'pdf',
+        label: 'PDF',
+        url: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/O%20Grande%20Conflito/livro-o-grande-conflito-AMM.pdf',
+      },
+      {
+        type: 'epub',
+        label: 'EPUB',
+        url: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/O%20Grande%20Conflito/livro-epub-o-grande-conflito.epub',
+      },
+      {
+        type: 'infantil',
+        label: 'Infantil',
+        url: 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/O%20Grande%20Conflito/livro-o-grande-conflito-infantil.pdf',
+      },
+    ],
+  },
 ]
 
 export default function Home() {
