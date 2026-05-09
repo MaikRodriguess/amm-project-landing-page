@@ -61,6 +61,22 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
   )
 }
 
+// ─── FIELD (fora de qualquer componente para evitar re-criação) ──────────────
+const inputBase = 'w-full bg-[#0e0e0e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 resize-none'
+
+function FormField({ label, value, onChange, placeholder, multiline = false }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder: string; multiline?: boolean
+}) {
+  return (
+    <div>
+      <label className="text-gray-400 text-xs mb-1 block">{label}</label>
+      {multiline
+        ? <textarea rows={2} className={inputBase} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
+        : <input type="text" className={inputBase} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />}
+    </div>
+  )
+}
+
 // ─── MODAL ADICIONAR EVENTO ───────────────────
 function AddEventModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ev: Omit<CustomEvent, 'id' | 'created_at'>) => Promise<void> }) {
   const [form, setForm] = useState({ month: 'Janeiro', month_num: 1, date_range: '', name: '', location: '', featured: false, image: '', description: '', time_info: '', address: '' })
@@ -76,19 +92,6 @@ function AddEventModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ev: Om
     onClose()
   }
 
-  function Field({ label, field, placeholder, multiline = false }: { label: string; field: keyof typeof form; placeholder: string; multiline?: boolean }) {
-    const base = 'w-full bg-[#0e0e0e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 resize-none'
-    const val = form[field] as string
-    const set = (v: string) => setForm(f => ({ ...f, [field]: v }))
-    return (
-      <div>
-        <label className="text-gray-400 text-xs mb-1 block">{label}</label>
-        {multiline
-          ? <textarea rows={2} className={base} placeholder={placeholder} value={val} onChange={e => set(e.target.value)} />
-          : <input type="text" className={base} placeholder={placeholder} value={val} onChange={e => set(e.target.value)} />}
-      </div>
-    )
-  }
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
@@ -107,16 +110,16 @@ function AddEventModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ev: Om
                 {MONTHS.map(m => <option key={m.num} value={m.label}>{m.label}</option>)}
               </select>
             </div>
-            <Field label="Data (ex: 15 a 17)" field="date_range" placeholder="01 a 03" />
+            <FormField label="Data (ex: 15 a 17)" value={form.date_range} onChange={v => setForm(f => ({ ...f, date_range: v }))} placeholder="01 a 03" />
           </div>
 
-          <Field label="Nome do Evento *" field="name" placeholder="Nome completo do evento" />
-          <Field label="Local *" field="location" placeholder="Cidade/UF" />
-          <Field label="🖼️ URL do Flyer" field="image" placeholder="https://..." />
-          <Field label="📝 Descrição" field="description" placeholder="Detalhes do evento..." multiline />
+          <FormField label="Nome do Evento *" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} placeholder="Nome completo do evento" />
+          <FormField label="Local *" value={form.location} onChange={v => setForm(f => ({ ...f, location: v }))} placeholder="Cidade/UF" />
+          <FormField label="🖼️ URL do Flyer" value={form.image} onChange={v => setForm(f => ({ ...f, image: v }))} placeholder="https://..." />
+          <FormField label="📝 Descrição" value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} placeholder="Detalhes do evento..." multiline />
           <div className="grid grid-cols-2 gap-3">
-            <Field label="🕐 Horário" field="time_info" placeholder="A partir das 08h" />
-            <Field label="📍 Endereço" field="address" placeholder="Endereço completo" />
+            <FormField label="🕐 Horário" value={form.time_info} onChange={v => setForm(f => ({ ...f, time_info: v }))} placeholder="A partir das 08h" />
+            <FormField label="📍 Endereço" value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} placeholder="Endereço completo" />
           </div>
 
           <label className="flex items-center gap-2 text-gray-300 text-sm cursor-pointer select-none">
