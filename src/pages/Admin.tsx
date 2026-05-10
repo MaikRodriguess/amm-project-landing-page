@@ -151,9 +151,16 @@ function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, 
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<'idle' | 'ok' | 'err'>('idle')
   const [actionLoading, setActionLoading] = useState(false)
-  const [form, setForm] = useState({ image: customEvent?.image ?? extra?.image ?? '', description: customEvent?.description ?? extra?.description ?? '', time: customEvent?.time_info ?? extra?.time ?? '', address: customEvent?.address ?? extra?.address ?? '' })
 
-  useEffect(() => { setForm({ image: customEvent?.image ?? extra?.image ?? '', description: customEvent?.description ?? extra?.description ?? '', time: customEvent?.time_info ?? extra?.time ?? '', address: customEvent?.address ?? extra?.address ?? '' }) }, [extra, customEvent])
+  const initialForm = isCustom && customEvent
+    ? { image: customEvent.image, description: customEvent.description, time: customEvent.time_info, address: customEvent.address }
+    : { image: extra?.image ?? '', description: extra?.description ?? '', time: extra?.time ?? '', address: extra?.address ?? '' }
+
+  const [form, setForm] = useState(initialForm)
+
+  useEffect(() => {
+    setForm(initialForm)
+  }, [isCustom, customEvent, extra])
 
   async function handleSave() {
     setSaving(true)
@@ -171,7 +178,7 @@ function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, 
     setActionLoading(false)
   }
 
-  const hasData = Boolean(extra?.image || extra?.description || extra?.time || extra?.address)
+  const hasData = isCustom ? true : Boolean(extra?.image || extra?.description || extra?.time || extra?.address)
 
   return (
     <div className={`border rounded-xl overflow-hidden transition-opacity ${isHidden ? 'opacity-40 border-white/5' : 'border-white/10'}`}>
