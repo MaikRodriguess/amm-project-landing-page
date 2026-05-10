@@ -250,7 +250,7 @@ export default function Home() {
               </p>
               <div className="bg-amm-orange bg-opacity-10 border-l-4 border-amm-orange p-6 rounded">
                 <p className="text-gray-100 font-semibold">
-                  Fundado em 2013, o AMM Brasil MC já atua em 25 estados com mais de 158 regionais e quase 3.000 membros comprometidos em transformar vidas por meio do amor de Cristo.
+                  Fundado em 2013, o AMM Brasil MC já atua em 25 estados com mais de 171 regionais e quase 2.900 membros comprometidos em transformar vidas por meio do amor de Cristo.
                 </p>
               </div>
             </div>
@@ -291,8 +291,8 @@ export default function Home() {
               {[
                 { number: '2013', label: 'Fundação' },
                 { number: '25', label: 'Estados' },
-                { number: '158+', label: 'Regionais' },
-                { number: '3.000', label: 'Membros' },
+                { number: '171+', label: 'Regionais' },
+                { number: '2.900', label: 'Membros' },
               ].map((stat, idx) => (
                 <div key={idx} className="text-center">
                   <p className="text-4xl font-bold text-amm-orange mb-2">{stat.number}</p>
