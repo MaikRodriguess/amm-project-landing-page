@@ -144,21 +144,21 @@ function AddEventModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ev: Om
 }
 
 // ─── EDITOR DE EVENTO ─────────────────────────
-function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, onSaveCustom, isHidden, isCustom, customId }:
-  { event: EventItem; monthNum: number; month: string; extra: EventExtra | undefined; onSave: (id: string, d: EventExtra) => Promise<boolean>; onHide?: () => Promise<void>; onDelete?: () => Promise<void>; onSaveCustom?: (id: string, updates: Partial<CustomEvent>) => Promise<boolean>; isHidden?: boolean; isCustom?: boolean; customId?: string }) {
+function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, onSaveCustom, isHidden, isCustom, customId, customEvent }:
+  { event: EventItem; monthNum: number; month: string; extra: EventExtra | undefined; onSave: (id: string, d: EventExtra) => Promise<boolean>; onHide?: () => Promise<void>; onDelete?: () => Promise<void>; onSaveCustom?: (id: string, updates: Partial<CustomEvent>) => Promise<boolean>; isHidden?: boolean; isCustom?: boolean; customId?: string; customEvent?: CustomEvent }) {
   const eventId = makeEventId(monthNum, event.date)
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<'idle' | 'ok' | 'err'>('idle')
   const [actionLoading, setActionLoading] = useState(false)
-  const [form, setForm] = useState({ image: extra?.image ?? '', description: extra?.description ?? '', time: extra?.time ?? '', address: extra?.address ?? '' })
+  const [form, setForm] = useState({ image: customEvent?.image ?? extra?.image ?? '', description: customEvent?.description ?? extra?.description ?? '', time: customEvent?.time_info ?? extra?.time ?? '', address: customEvent?.address ?? extra?.address ?? '' })
 
-  useEffect(() => { setForm({ image: extra?.image ?? '', description: extra?.description ?? '', time: extra?.time ?? '', address: extra?.address ?? '' }) }, [extra])
+  useEffect(() => { setForm({ image: customEvent?.image ?? extra?.image ?? '', description: customEvent?.description ?? extra?.description ?? '', time: customEvent?.time_info ?? extra?.time ?? '', address: customEvent?.address ?? extra?.address ?? '' }) }, [extra, customEvent])
 
   async function handleSave() {
     setSaving(true)
     const ok = isCustom && onSaveCustom && customId
-      ? await onSaveCustom(customId, { ...form } as any)
+      ? await onSaveCustom(customId, { image: form.image, description: form.description, time_info: form.time, address: form.address })
       : await onSave(eventId, { event_id: eventId, ...form })
     setSaving(false)
     setStatus(ok ? 'ok' : 'err')
@@ -376,7 +376,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                         return (
                           <EventEditor key={ce.id} event={ev} monthNum={ce.month_num} month={ce.month}
                             extra={extras[ce.id]} onSave={handleSave} onSaveCustom={handleSaveCustom}
-                            isCustom customId={ce.id} onDelete={() => handleDelete(ce.id)} />
+                            isCustom customId={ce.id} customEvent={ce} onDelete={() => handleDelete(ce.id)} />
                         )
                       })}
                     </div>
