@@ -105,6 +105,12 @@ export async function addCustomEvent(event: Omit<CustomEvent, 'id' | 'created_at
   return !error
 }
 
+export async function updateCustomEvent(id: string, updates: Partial<Omit<CustomEvent, 'id' | 'created_at'>>): Promise<boolean> {
+  const { error } = await supabase.from('events_custom').update(updates).eq('id', id)
+  if (error) console.error('[Supabase] updateCustomEvent error:', error.message)
+  return !error
+}
+
 export async function deleteCustomEvent(id: string): Promise<boolean> {
   const { error } = await supabase.from('events_custom').delete().eq('id', id)
   if (error) console.error('[Supabase] deleteCustomEvent error:', error.message)

@@ -4,7 +4,7 @@ import { AGENDA_2026, type EventItem } from '../components/EventsSection'
 import {
   fetchAllEventExtras, saveEventExtra, type EventExtra,
   fetchHiddenEventIds, setEventHidden,
-  fetchCustomEvents, addCustomEvent, deleteCustomEvent, type CustomEvent,
+  fetchCustomEvents, addCustomEvent, updateCustomEvent, deleteCustomEvent, type CustomEvent,
 } from '../lib/supabase'
 
 const ADMIN_PASSWORD = 'AMMsenha'
@@ -144,8 +144,8 @@ function AddEventModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ev: Om
 }
 
 // ─── EDITOR DE EVENTO ─────────────────────────
-function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, isHidden, isCustom }:
-  { event: EventItem; monthNum: number; month: string; extra: EventExtra | undefined; onSave: (id: string, d: EventExtra) => Promise<boolean>; onHide?: () => Promise<void>; onDelete?: () => Promise<void>; isHidden?: boolean; isCustom?: boolean }) {
+function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, onSaveCustom, isHidden, isCustom, customId }:
+  { event: EventItem; monthNum: number; month: string; extra: EventExtra | undefined; onSave: (id: string, d: EventExtra) => Promise<boolean>; onHide?: () => Promise<void>; onDelete?: () => Promise<void>; onSaveCustom?: (id: string, updates: Partial<CustomEvent>) => Promise<boolean>; isHidden?: boolean; isCustom?: boolean; customId?: string }) {
   const eventId = makeEventId(monthNum, event.date)
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -157,7 +157,9 @@ function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, 
 
   async function handleSave() {
     setSaving(true)
-    const ok = await onSave(eventId, { event_id: eventId, ...form })
+    const ok = isCustom && onSaveCustom && customId
+      ? await onSaveCustom(customId, { ...form } as any)
+      : await onSave(eventId, { event_id: eventId, ...form })
     setSaving(false)
     setStatus(ok ? 'ok' : 'err')
     setTimeout(() => setStatus('idle'), 3000)
@@ -270,6 +272,12 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     if (ok) { const updated = await fetchCustomEvents(); setCustomEvents(updated) }
   }
 
+  async function handleSaveCustom(id: string, updates: Partial<CustomEvent>): Promise<boolean> {
+    const ok = await updateCustomEvent(id, updates)
+    if (ok) { const updated = await fetchCustomEvents(); setCustomEvents(updated) }
+    return ok
+  }
+
   async function handleDelete(id: string) {
     const ok = await deleteCustomEvent(id)
     if (ok) setCustomEvents(prev => prev.filter(e => e.id !== id))
@@ -365,11 +373,10 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                       {/* Eventos customizados */}
                       {customs.map(ce => {
                         const ev: EventItem = { date: ce.date_range, name: ce.name, location: ce.location, featured: ce.featured, image: ce.image, description: ce.description, time: ce.time_info, address: ce.address }
-                        const eventId = ce.id
                         return (
                           <EventEditor key={ce.id} event={ev} monthNum={ce.month_num} month={ce.month}
-                            extra={extras[eventId]} onSave={handleSave}
-                            isCustom onDelete={() => handleDelete(ce.id)} />
+                            extra={extras[ce.id]} onSave={handleSave} onSaveCustom={handleSaveCustom}
+                            isCustom customId={ce.id} onDelete={() => handleDelete(ce.id)} />
                         )
                       })}
                     </div>
