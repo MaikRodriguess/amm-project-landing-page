@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { MapPin, Calendar, ChevronDown, ChevronUp, X, Clock, Info, Trash2 } from 'lucide-react'
-import { fetchCustomEvents, deleteCustomEvent, type CustomEvent } from '../lib/supabase'
+import { MapPin, Calendar, ChevronDown, ChevronUp, X, Clock, Info } from 'lucide-react'
+import { fetchCustomEvents, type CustomEvent } from '../lib/supabase'
 
 // ─────────────────────────────────────────────
 // TIPOS
@@ -67,29 +67,11 @@ function getUpcomingEvents(agenda: MonthEvents[] = AGENDA_2026): (EventItem & { 
 function EventModal({
   event,
   onClose,
-  onDelete,
 }: {
   event: (EventItem & { month: string }) | null
   onClose: () => void
-  onDelete?: (eventName: string) => Promise<void>
 }) {
-  const [isDeleting, setIsDeleting] = useState(false)
-
   if (!event) return null
-
-  const handleDelete = async () => {
-    if (confirm(`Tem certeza que deseja deletar "${event.name}"?`)) {
-      setIsDeleting(true)
-      try {
-        if (onDelete) {
-          await onDelete(event.name)
-        }
-        onClose()
-      } finally {
-        setIsDeleting(false)
-      }
-    }
-  }
 
   return (
     <div
@@ -113,25 +95,13 @@ function EventModal({
           </div>
         )}
 
-        {/* Botões de ação */}
-        <div className="absolute top-3 right-3 flex gap-2">
-          {onDelete && (
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-red-600/80 hover:bg-red-600 disabled:opacity-50 text-white rounded-full p-1.5 transition"
-              title="Deletar evento"
-            >
-              <Trash2 size={18} />
-            </button>
-          )}
-          <button
-            onClick={onClose}
-            className="bg-black/60 hover:bg-black text-white rounded-full p-1.5 transition"
-          >
-            <X size={18} />
-          </button>
-        </div>
+        {/* Botão de fechar */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 bg-black/60 hover:bg-black text-white rounded-full p-1.5 transition"
+        >
+          <X size={18} />
+        </button>
 
         {/* Conteúdo */}
         <div className="p-6">
@@ -269,21 +239,6 @@ export function EventsSection() {
   useEffect(() => {
     loadEvents()
   }, [])
-
-  const handleDeleteEvent = async (eventName: string) => {
-    const event = customEvents.find(e => e.name === eventName)
-    if (!event) {
-      alert('Evento não encontrado')
-      return
-    }
-
-    if (await deleteCustomEvent(event.id)) {
-      alert('Evento deletado com sucesso!')
-      await loadEvents()
-    } else {
-      alert('Erro ao deletar evento')
-    }
-  }
 
   // Agenda dinâmica: apenas eventos customizados (do Supabase)
   const dynamicAgenda = AGENDA_2026.map(monthData => ({
@@ -465,7 +420,6 @@ export function EventsSection() {
       <EventModal
         event={modalEvent}
         onClose={() => setModalEvent(null)}
-        onDelete={handleDeleteEvent}
       />
     </section>
   )
