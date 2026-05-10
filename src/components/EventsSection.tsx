@@ -87,11 +87,11 @@ function EventModal({
           <img
             src={event.image}
             alt={event.name}
-            className="w-full h-56 object-cover"
+            className="w-full max-h-96 object-contain bg-black"
           />
         ) : (
-          <div className="w-full h-40 bg-gradient-to-br from-amm-orange/20 to-amm-dark flex items-center justify-center">
-            <span className="text-5xl">🏍️</span>
+          <div className="w-full h-56 bg-gradient-to-br from-amm-orange/20 to-amm-dark flex items-center justify-center">
+            <span className="text-6xl">🏍️</span>
           </div>
         )}
 
