@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import { Save, LogOut, ChevronDown, ChevronUp, Eye, EyeOff, CheckCircle, AlertCircle, Loader, Plus, Trash2, EyeOff as Hide, RotateCcw, X } from 'lucide-react'
 import { AGENDA_2026, type EventItem } from '../components/EventsSection'
 import {
-  fetchAllEventExtras, saveEventExtra, type EventExtra,
+  supabase, fetchAllEventExtras, saveEventExtra, type EventExtra,
   fetchHiddenEventIds, setEventHidden,
   fetchCustomEvents, addCustomEvent, updateCustomEvent, deleteCustomEvent, type CustomEvent,
 } from '../lib/supabase'
 
-const ADMIN_PASSWORD = 'AMMsenha'
+const ADMIN_EMAIL = 'admin@amm-brasil.com'
+const ADMIN_PASSWORD = 'AMMsenha123'
 
 const MONTHS = [
   { label: 'Janeiro', num: 1 }, { label: 'Fevereiro', num: 2 }, { label: 'Março', num: 3 },
@@ -22,14 +23,26 @@ function makeEventId(monthNum: number, date: string): string {
 
 // ─── LOGIN ───────────────────────────────────
 function LoginScreen({ onLogin }: { onLogin: () => void }) {
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (password === ADMIN_PASSWORD) { sessionStorage.setItem('amm_admin', '1'); onLogin() }
-    else { setError(true); setTimeout(() => setError(false), 2000) }
+    setError('')
+    setLoading(true)
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (signInError) {
+      setError(signInError.message)
+      setLoading(false)
+    } else {
+      sessionStorage.setItem('amm_admin', '1')
+      onLogin()
+    }
   }
 
   return (
@@ -42,18 +55,27 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
         </div>
         <form onSubmit={handleSubmit} className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-8 space-y-4">
           <div>
+            <label className="text-gray-400 text-sm mb-1 block">Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} disabled={loading}
+              className="w-full bg-[#0e0e0e] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 disabled:opacity-50"
+              placeholder="seu@email.com" />
+          </div>
+          <div>
             <label className="text-gray-400 text-sm mb-1 block">Senha</label>
             <div className="relative">
-              <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                className="w-full bg-[#0e0e0e] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 pr-10"
-                placeholder="Digite a senha..." autoFocus />
+              <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} disabled={loading}
+                className="w-full bg-[#0e0e0e] border border-white/10 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-amber-500 pr-10 disabled:opacity-50"
+                placeholder="Digite a senha..." />
               <button type="button" onClick={() => setShowPw(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
                 {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
-            {error && <p className="text-red-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} /> Senha incorreta</p>}
+            {error && <p className="text-red-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={12} /> {error}</p>}
           </div>
-          <button type="submit" className="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 rounded-lg transition text-sm uppercase">Entrar</button>
+          <button type="submit" disabled={loading} className="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-black font-bold py-3 rounded-lg transition text-sm uppercase flex items-center justify-center gap-2">
+            {loading ? <Loader size={16} className="animate-spin" /> : null}
+            {loading ? 'Autenticando...' : 'Entrar'}
+          </button>
         </form>
         <p className="text-center text-gray-700 text-xs mt-4">Acesso restrito — AMM Brasil MC</p>
       </div>
@@ -403,7 +425,14 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
 // ─── PÁGINA PRINCIPAL ─────────────────────────
 export default function Admin() {
   const [auth, setAuth] = useState(() => sessionStorage.getItem('amm_admin') === '1')
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    sessionStorage.removeItem('amm_admin')
+    setAuth(false)
+  }
+
   return auth
-    ? <AdminPanel onLogout={() => { sessionStorage.removeItem('amm_admin'); setAuth(false) }} />
+    ? <AdminPanel onLogout={handleLogout} />
     : <LoginScreen onLogin={() => setAuth(true)} />
 }
