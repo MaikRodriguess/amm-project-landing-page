@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { MapPin, Calendar, ChevronDown, ChevronUp, X, Clock, Info } from 'lucide-react'
-import { fetchAllEventExtras, fetchHiddenEventIds, fetchCustomEvents, type EventExtra, type CustomEvent } from '../lib/supabase'
+import { MapPin, Calendar, ChevronDown, ChevronUp, X, Clock, Info, Trash2 } from 'lucide-react'
+import { fetchCustomEvents, deleteCustomEvent, type CustomEvent } from '../lib/supabase'
 
 // ─────────────────────────────────────────────
 // TIPOS
@@ -24,85 +24,20 @@ export interface MonthEvents {
 }
 
 // ─────────────────────────────────────────────
-// DADOS — adicione image/description/time/address
-// ao evento que quiser destacar
+// DADOS — Apenas estrutura de meses vazia
+// Todos os eventos vêm do Supabase (customizados)
 // ─────────────────────────────────────────────
 export const AGENDA_2026: MonthEvents[] = [
-  {
-    month: 'Janeiro', monthNum: 1,
-    events: [
-      { date: '31', name: '1° Aniversário Alvissareiros MCA', location: 'Presidente Médice/RO' },
-    ],
-  },
-  {
-    month: 'Fevereiro', monthNum: 2,
-    events: [
-      { date: '07', name: '7° Aniversário Jabutis do Acre', location: 'Rio Branco/AC' },
-    ],
-  },
-  {
-    month: 'Março', monthNum: 3,
-    events: [
-      { date: '14', name: '17° Aniversário do Point do Motociclista', location: 'Porto Velho/RO' },
-    ],
-  },
-  {
-    month: 'Abril', monthNum: 4,
-    events: [
-      { date: '10 a 12', name: 'Arcanjos Motofest 2026', location: 'Cacoal/RO' },
-    ],
-  },
-  {
-    month: 'Maio', monthNum: 5,
-    events: [
-      { date: '01 a 03', name: '3° Aniversário do Ferrovia MC', location: 'Guajará-Mirim/RO' },
-    ],
-  },
-  {
-    month: 'Junho', monthNum: 6,
-    events: [
-      {
-        date: '05 a 07',
-        name: '1º Encontro Doidos por Estrada Brasil',
-        location: 'Jaru/RO',
-        // ✏️ Preencha os campos abaixo quando tiver as informações do evento:
-        image: '',        // URL do flyer/arte
-        description: '',  // Descrição do evento
-        time: '',         // Ex: "A partir das 08h"
-        address: '',      // Endereço completo
-      },
-    ],
-  },
-  {
-    month: 'Julho', monthNum: 7,
-    events: [
-      { date: '04', name: '10° Aniversário do Porto Velho MG', location: 'Porto Velho/RO', featured: true },
-      { date: '11', name: '2° Aniversário Black Stone', location: 'Humaitá/AM' },
-      { date: '24 a 26', name: "Aniversário dos Rider's do Norte", location: 'Jaru/RO', featured: true },
-      { date: '25', name: 'Niver Regional Águias de Cristo', location: 'Manaus/AM' },
-    ],
-  },
-  {
-    month: 'Agosto', monthNum: 8,
-    events: [
-      { date: '07 a 09', name: '2° Acre Moto Road', location: 'Rio Branco/AC', featured: true },
-      { date: '15 e 16', name: 'Trubian Day 2026', location: 'Ouro Preto do Oeste/RO' },
-      { date: '28 a 30', name: 'Piratas da Amazônia', location: "Machadinho D'Oeste/RO" },
-    ],
-  },
-  {
-    month: 'Setembro', monthNum: 9,
-    events: [
-      { date: '04 a 06', name: '16° Madeira Road e 26° Aniversário do Viramundo MG', location: 'Rondônia' },
-      { date: '19', name: '10° Aniversário do Claveiras Brasil Motoclube', location: 'Porto Velho/RO' },
-    ],
-  },
-  {
-    month: 'Outubro', monthNum: 10,
-    events: [
-      { date: '30/10 a 01/11', name: '8° Aniversário do Águias da Amazônia', location: 'Vilhena/RO' },
-    ],
-  },
+  { month: 'Janeiro', monthNum: 1, events: [] },
+  { month: 'Fevereiro', monthNum: 2, events: [] },
+  { month: 'Março', monthNum: 3, events: [] },
+  { month: 'Abril', monthNum: 4, events: [] },
+  { month: 'Maio', monthNum: 5, events: [] },
+  { month: 'Junho', monthNum: 6, events: [] },
+  { month: 'Julho', monthNum: 7, events: [] },
+  { month: 'Agosto', monthNum: 8, events: [] },
+  { month: 'Setembro', monthNum: 9, events: [] },
+  { month: 'Outubro', monthNum: 10, events: [] },
   { month: 'Novembro', monthNum: 11, events: [] },
   { month: 'Dezembro', monthNum: 12, events: [] },
 ]
@@ -132,11 +67,29 @@ function getUpcomingEvents(agenda: MonthEvents[] = AGENDA_2026): (EventItem & { 
 function EventModal({
   event,
   onClose,
+  onDelete,
 }: {
   event: (EventItem & { month: string }) | null
   onClose: () => void
+  onDelete?: (eventName: string) => Promise<void>
 }) {
+  const [isDeleting, setIsDeleting] = useState(false)
+
   if (!event) return null
+
+  const handleDelete = async () => {
+    if (confirm(`Tem certeza que deseja deletar "${event.name}"?`)) {
+      setIsDeleting(true)
+      try {
+        if (onDelete) {
+          await onDelete(event.name)
+        }
+        onClose()
+      } finally {
+        setIsDeleting(false)
+      }
+    }
+  }
 
   return (
     <div
@@ -160,13 +113,25 @@ function EventModal({
           </div>
         )}
 
-        {/* Botão fechar */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 bg-black/60 hover:bg-black text-white rounded-full p-1.5 transition"
-        >
-          <X size={18} />
-        </button>
+        {/* Botões de ação */}
+        <div className="absolute top-3 right-3 flex gap-2">
+          {onDelete && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600/80 hover:bg-red-600 disabled:opacity-50 text-white rounded-full p-1.5 transition"
+              title="Deletar evento"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="bg-black/60 hover:bg-black text-white rounded-full p-1.5 transition"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
         {/* Conteúdo */}
         <div className="p-6">
@@ -290,37 +255,43 @@ function FeaturedEventCard({
 // COMPONENTE PRINCIPAL
 // ─────────────────────────────────────────────
 export function EventsSection() {
-  const [extras, setExtras] = useState<Record<string, EventExtra>>({})
-  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set())
   const [customEvents, setCustomEvents] = useState<CustomEvent[]>([])
 
+  const loadEvents = async () => {
+    try {
+      const custom = await fetchCustomEvents()
+      setCustomEvents(custom)
+    } catch (err) {
+      console.error('[EventsSection] Erro ao carregar:', err)
+    }
+  }
+
   useEffect(() => {
-    Promise.all([fetchAllEventExtras(), fetchHiddenEventIds(), fetchCustomEvents()])
-      .then(([ex, hidden, custom]) => { setExtras(ex); setHiddenIds(hidden); setCustomEvents(custom) })
-      .catch(err => console.error('[EventsSection] Erro ao carregar:', err))
+    loadEvents()
   }, [])
 
-  function makeId(monthNum: number, date: string) {
-    return `${String(monthNum).padStart(2, '0')}-${date.replace(/\s/g, '')}`
+  const handleDeleteEvent = async (eventName: string) => {
+    const event = customEvents.find(e => e.name === eventName)
+    if (!event) {
+      alert('Evento não encontrado')
+      return
+    }
+
+    if (await deleteCustomEvent(event.id)) {
+      alert('Evento deletado com sucesso!')
+      await loadEvents()
+    } else {
+      alert('Erro ao deletar evento')
+    }
   }
 
-  function mergeExtra(ev: EventItem, monthNum: number): EventItem {
-    const id = makeId(monthNum, ev.date)
-    const extra = extras[id]
-    if (!extra) return ev
-    return { ...ev, image: extra.image || ev.image, description: extra.description || ev.description, time: extra.time || ev.time, address: extra.address || ev.address }
-  }
-
-  // Agenda dinâmica: fixos filtrados + customs adicionados por mês
+  // Agenda dinâmica: apenas eventos customizados (do Supabase)
   const dynamicAgenda = AGENDA_2026.map(monthData => ({
     ...monthData,
-    events: [
-      ...monthData.events.filter(ev => !hiddenIds.has(makeId(monthData.monthNum, ev.date))).map(ev => mergeExtra(ev, monthData.monthNum)),
-      ...customEvents.filter(ce => ce.month_num === monthData.monthNum).map(ce => ({
-        date: ce.date_range, name: ce.name, location: ce.location, featured: ce.featured,
-        image: ce.image, description: ce.description, time: ce.time_info, address: ce.address,
-      } as EventItem)),
-    ],
+    events: customEvents.filter(ce => ce.month_num === monthData.monthNum).map(ce => ({
+      date: ce.date_range, name: ce.name, location: ce.location, featured: ce.featured,
+      image: ce.image, description: ce.description, time: ce.time_info, address: ce.address,
+    } as EventItem)),
   }))
 
   const allUpcoming = getUpcomingEvents(dynamicAgenda)
@@ -491,7 +462,11 @@ export function EventsSection() {
       </div>
 
       {/* ── MODAL ── */}
-      <EventModal event={modalEvent} onClose={() => setModalEvent(null)} />
+      <EventModal
+        event={modalEvent}
+        onClose={() => setModalEvent(null)}
+        onDelete={handleDeleteEvent}
+      />
     </section>
   )
 }
