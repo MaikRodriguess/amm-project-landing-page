@@ -351,7 +351,7 @@ export function EventsSection() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {AGENDA_2026.map((monthData) => {
+            {dynamicAgenda.map((monthData) => {
               const isPast = monthData.monthNum < new Date().getMonth() + 1
               return (
                 <div
