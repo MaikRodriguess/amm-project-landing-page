@@ -79,32 +79,34 @@ function EventModal({
       onClick={onClose}
     >
       <div
-        className="relative bg-[#1e1e1e] border border-amm-orange/30 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+        className="relative bg-[#1e1e1e] border border-amm-orange/30 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Imagem do evento */}
-        {event.image ? (
-          <img
-            src={event.image}
-            alt={event.name}
-            className="w-full max-h-96 object-contain bg-black"
-          />
-        ) : (
-          <div className="w-full h-56 bg-gradient-to-br from-amm-orange/20 to-amm-dark flex items-center justify-center">
-            <span className="text-6xl">🏍️</span>
-          </div>
-        )}
+        <div className="flex-shrink-0 relative">
+          {event.image ? (
+            <img
+              src={event.image}
+              alt={event.name}
+              className="w-full max-h-96 object-contain bg-black"
+            />
+          ) : (
+            <div className="w-full h-56 bg-gradient-to-br from-amm-orange/20 to-amm-dark flex items-center justify-center">
+              <span className="text-6xl">🏍️</span>
+            </div>
+          )}
 
-        {/* Botão de fechar */}
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 bg-black/60 hover:bg-black text-white rounded-full p-1.5 transition"
-        >
-          <X size={18} />
-        </button>
+          {/* Botão de fechar */}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 bg-black/60 hover:bg-black text-white rounded-full p-1.5 transition"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
-        {/* Conteúdo */}
-        <div className="p-6">
+        {/* Conteúdo scrollável */}
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Badge */}
           <span className="inline-block bg-amm-orange text-black text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide mb-3">
             {event.month} · {event.date}
