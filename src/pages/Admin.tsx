@@ -86,14 +86,14 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
 // ─── FIELD (fora de qualquer componente para evitar re-criação) ──────────────
 const inputBase = 'w-full bg-[#0e0e0e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 resize-none'
 
-function FormField({ label, value, onChange, placeholder, multiline = false }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder: string; multiline?: boolean
+function FormField({ label, value, onChange, placeholder, multiline = false, rows = 10 }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder: string; multiline?: boolean; rows?: number
 }) {
   return (
     <div>
       <label className="text-gray-400 text-xs mb-1 block">{label}</label>
       {multiline
-        ? <textarea rows={2} className={inputBase} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
+        ? <textarea rows={rows} className={inputBase} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
         : <input type="text" className={inputBase} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />}
     </div>
   )
@@ -241,15 +241,20 @@ function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, 
         <div className="px-4 pb-4 border-t border-white/5 pt-3 space-y-3">
           {form.image && <img src={form.image} alt="Preview" className="w-full max-h-40 object-contain rounded-lg border border-white/10 bg-black" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />}
           {[
-            { label: '🖼️ URL do Flyer', key: 'image', ph: 'https://...' },
-            { label: '📝 Descrição', key: 'description', ph: 'Descreva o evento...' },
-            { label: '🕐 Horário', key: 'time', ph: 'A partir das 08h' },
-            { label: '📍 Endereço', key: 'address', ph: 'Endereço completo' },
-          ].map(({ label, key, ph }) => (
+            { label: '🖼️ URL do Flyer', key: 'image', ph: 'https://...', isTextarea: false },
+            { label: '📝 Descrição', key: 'description', ph: 'Descreva o evento...', isTextarea: true },
+            { label: '🕐 Horário', key: 'time', ph: 'A partir das 08h', isTextarea: false },
+            { label: '📍 Endereço', key: 'address', ph: 'Endereço completo', isTextarea: false },
+          ].map(({ label, key, ph, isTextarea }) => (
             <div key={key}>
               <label className="text-gray-400 text-xs mb-1 block">{label}</label>
-              <input type="text" className="w-full bg-[#0e0e0e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
-                placeholder={ph} value={form[key as keyof typeof form]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
+              {isTextarea ? (
+                <textarea rows={10} className="w-full bg-[#0e0e0e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500 resize-none"
+                  placeholder={ph} value={form[key as keyof typeof form]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
+              ) : (
+                <input type="text" className="w-full bg-[#0e0e0e] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500"
+                  placeholder={ph} value={form[key as keyof typeof form]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
+              )}
             </div>
           ))}
           <div className="flex items-center gap-3">
