@@ -126,7 +126,7 @@ function EventModal({
           </div>
 
           {event.description ? (
-            <p className="text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-4">
+            <p className="text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-4 whitespace-pre-line">
               {event.description}
             </p>
           ) : (
@@ -202,7 +202,7 @@ function FeaturedEventCard({
           )}
 
           {event.description && (
-            <p className="text-gray-400 text-sm leading-relaxed mb-5 line-clamp-3">
+            <p className="text-gray-400 text-sm leading-relaxed mb-5 line-clamp-3 whitespace-pre-line">
               {event.description}
             </p>
           )}
