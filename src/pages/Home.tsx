@@ -55,7 +55,7 @@ const BOOKS: Book[] = [
         label: 'Libras',
         url: 'https://www.youtube.com/watch?v=CFG7C0sJtWM&list=PLk1ZymRnXuZR1WNESYyrREemxYBN8hXQi&index=1',
       },
- b     ],
+    ],
   },
   {
     id: 'grande-conflito',
