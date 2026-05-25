@@ -2,6 +2,7 @@ import ClippedButton from '../components/ClippedButton'
 import { BooksCarousel, type Book } from '../components/BooksCarousel'
 import { CheckCircle, Users, Heart, Zap, ExternalLink } from 'lucide-react'
 import { EventsSection } from '../components/EventsSection'
+import GalleryCarousel from '../components/GalleryCarousel'
 import GallerySection from '../components/GallerySection'
 
 const VIDEO_URL = 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/video_pagina.mp4'
@@ -202,6 +203,9 @@ export default function Home() {
 
       {/* Eventos Section */}
       <EventsSection />
+
+      {/* Gallery Carousel */}
+      <GalleryCarousel />
 
       {/* Galeria Section */}
       <GallerySection />

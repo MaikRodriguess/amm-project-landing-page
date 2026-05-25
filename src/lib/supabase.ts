@@ -121,11 +121,22 @@ export async function deleteCustomEvent(id: string): Promise<boolean> {
 // GALERIA DE FOTOS
 // ─────────────────────────────────────────────
 
+export interface GallerySection {
+  id: string
+  name: string
+  description: string
+  cover_url: string
+  is_carousel: boolean
+  display_order: number
+  created_at?: string
+}
+
 export interface GalleryPhoto {
   id: string
   url: string
   caption: string
   display_order: number
+  section_id?: string
   created_at?: string
 }
 
@@ -141,7 +152,7 @@ export async function fetchGalleryPhotos(): Promise<GalleryPhoto[]> {
   return data ?? []
 }
 
-export async function addGalleryPhoto(photo: Omit<GalleryPhoto, 'id' | 'created_at'>): Promise<boolean> {
+export async function addGalleryPhoto(photo: Omit<GalleryPhoto, 'id' | 'created_at'> & { section_id?: string }): Promise<boolean> {
   const { error } = await supabase.from('gallery_photos').insert(photo)
   if (error) console.error('[Supabase] addGalleryPhoto error:', error.message)
   return !error
@@ -156,5 +167,67 @@ export async function updateGalleryPhoto(id: string, updates: Partial<Omit<Galle
 export async function deleteGalleryPhoto(id: string): Promise<boolean> {
   const { error } = await supabase.from('gallery_photos').delete().eq('id', id)
   if (error) console.error('[Supabase] deleteGalleryPhoto error:', error.message)
+  return !error
+}
+
+// ─────────────────────────────────────────────
+// SEÇÕES DE GALERIA (ÁLBUNS)
+// ─────────────────────────────────────────────
+
+export async function fetchGallerySections(): Promise<GallerySection[]> {
+  const { data, error } = await supabase
+    .from('gallery_sections')
+    .select('*')
+    .order('display_order')
+  if (error) {
+    console.error('[Supabase] fetchGallerySections error:', error.message)
+    return []
+  }
+  return data ?? []
+}
+
+export async function fetchPhotosBySection(sectionId: string): Promise<GalleryPhoto[]> {
+  const { data, error } = await supabase
+    .from('gallery_photos')
+    .select('*')
+    .eq('section_id', sectionId)
+    .order('display_order')
+  if (error) {
+    console.error('[Supabase] fetchPhotosBySection error:', error.message)
+    return []
+  }
+  return data ?? []
+}
+
+export async function fetchCarouselPhotos(): Promise<GalleryPhoto[]> {
+  const { data: sections, error: sectionError } = await supabase
+    .from('gallery_sections')
+    .select('id')
+    .eq('is_carousel', true)
+    .limit(1)
+    .single()
+
+  if (sectionError || !sections) {
+    return []
+  }
+
+  return fetchPhotosBySection(sections.id)
+}
+
+export async function addGallerySection(section: Omit<GallerySection, 'id' | 'created_at'>): Promise<boolean> {
+  const { error } = await supabase.from('gallery_sections').insert(section)
+  if (error) console.error('[Supabase] addGallerySection error:', error.message)
+  return !error
+}
+
+export async function updateGallerySection(id: string, updates: Partial<Omit<GallerySection, 'id' | 'created_at'>>): Promise<boolean> {
+  const { error } = await supabase.from('gallery_sections').update(updates).eq('id', id)
+  if (error) console.error('[Supabase] updateGallerySection error:', error.message)
+  return !error
+}
+
+export async function deleteGallerySection(id: string): Promise<boolean> {
+  const { error } = await supabase.from('gallery_sections').delete().eq('id', id)
+  if (error) console.error('[Supabase] deleteGallerySection error:', error.message)
   return !error
 }

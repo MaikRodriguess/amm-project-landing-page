@@ -5,7 +5,8 @@ import {
   supabase, fetchAllEventExtras, saveEventExtra, type EventExtra,
   fetchHiddenEventIds, setEventHidden,
   fetchCustomEvents, addCustomEvent, updateCustomEvent, deleteCustomEvent, type CustomEvent,
-  fetchGalleryPhotos, addGalleryPhoto, deleteGalleryPhoto, updateGalleryPhoto, type GalleryPhoto,
+  fetchGallerySections, fetchPhotosBySection, addGallerySection, updateGallerySection, deleteGallerySection, type GallerySection,
+  addGalleryPhoto, deleteGalleryPhoto, updateGalleryPhoto, type GalleryPhoto,
 } from '../lib/supabase'
 
 const ADMIN_EMAIL = 'admin@amm-brasil.com'
@@ -100,9 +101,61 @@ function FormField({ label, value, onChange, placeholder, multiline = false, row
   )
 }
 
-// ─── MODAL ADICIONAR FOTO GALERIA ─────────────
-function AddGalleryPhotoModal({ onClose, onAdd }: { onClose: () => void; onAdd: (photo: Omit<GalleryPhoto, 'id' | 'created_at'>) => Promise<void> }) {
-  const [form, setForm] = useState({ url: '', caption: '', display_order: 0 })
+// ─── MODAL ADICIONAR/EDITAR ÁLBUM ─────────────
+function AddGallerySectionModal({ onClose, onAdd, section }: { onClose: () => void; onAdd: (sec: GallerySection | Omit<GallerySection, 'id' | 'created_at'>) => Promise<void>; section?: GallerySection }) {
+  const [form, setForm] = useState({ name: section?.name ?? '', description: section?.description ?? '', cover_url: section?.cover_url ?? '', is_carousel: section?.is_carousel ?? false, display_order: section?.display_order ?? 0 })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.name.trim()) { setError('Preencha o nome do álbum.'); return }
+    setSaving(true)
+    await onAdd(section ? { ...section, ...form } : form)
+    setSaving(false)
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-[#1a1a1a] border border-blue-500/30 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-white font-bold text-lg uppercase">{section ? 'Editar Álbum' : 'Criar Álbum'}</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-white"><X size={20} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <FormField label="📁 Nome do Álbum *" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} placeholder="Ex: Carrossel, Regional RO..." />
+          <FormField label="📝 Descrição" value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} placeholder="Descrição opcional..." />
+          <FormField label="🖼️ URL da Capa" value={form.cover_url} onChange={v => setForm(f => ({ ...f, cover_url: v }))} placeholder="https://..." />
+          {form.cover_url && (
+            <img src={form.cover_url} alt="Preview" className="w-full h-40 object-cover rounded-lg border border-white/10"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+          )}
+          <label className="flex items-center gap-2 text-gray-300 text-sm cursor-pointer select-none">
+            <input type="checkbox" checked={form.is_carousel} onChange={e => setForm(f => ({ ...f, is_carousel: e.target.checked }))} className="accent-blue-500" />
+            📺 Usar no Carrossel da Home
+          </label>
+
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+
+          <div className="flex gap-3 pt-2">
+            <button type="submit" disabled={saving}
+              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-bold py-2.5 rounded-lg transition text-sm">
+              {saving ? <Loader size={15} className="animate-spin" /> : <Plus size={15} />}
+              {saving ? 'Salvando...' : section ? 'Salvar Alterações' : 'Criar Álbum'}
+            </button>
+            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-white/10 text-gray-400 hover:text-white rounded-lg text-sm transition">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ─── MODAL ADICIONAR FOTO A ÁLBUM ─────────────
+function AddPhotoToSectionModal({ sectionId, onClose, onAdd }: { sectionId: string; onClose: () => void; onAdd: (photo: Omit<GalleryPhoto, 'id' | 'created_at'>) => Promise<void> }) {
+  const [form, setForm] = useState({ url: '', caption: '', display_order: 0, section_id: sectionId })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -326,18 +379,32 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [extras, setExtras] = useState<Record<string, EventExtra>>({})
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set())
   const [customEvents, setCustomEvents] = useState<CustomEvent[]>([])
-  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([])
+  const [gallerySections, setGallerySections] = useState<GallerySection[]>([])
+  const [sectionPhotos, setSectionPhotos] = useState<Record<string, GalleryPhoto[]>>({})
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [showPast, setShowPast] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
-  const [showAddGalleryModal, setShowAddGalleryModal] = useState(false)
+  const [showAddSectionModal, setShowAddSectionModal] = useState(false)
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
+  const [selectedSectionForPhoto, setSelectedSectionForPhoto] = useState<string | null>(null)
 
   const currentMonth = new Date().getMonth() + 1
 
   useEffect(() => {
-    Promise.all([fetchAllEventExtras(), fetchHiddenEventIds(), fetchCustomEvents(), fetchGalleryPhotos()])
-      .then(([ex, hidden, custom, gallery]) => { setExtras(ex); setHiddenIds(hidden); setCustomEvents(custom); setGalleryPhotos(gallery); setLoading(false) })
+    Promise.all([fetchAllEventExtras(), fetchHiddenEventIds(), fetchCustomEvents(), fetchGallerySections()])
+      .then(async ([ex, hidden, custom, sections]) => {
+        setExtras(ex)
+        setHiddenIds(hidden)
+        setCustomEvents(custom)
+        setGallerySections(sections)
+        const photos: Record<string, GalleryPhoto[]> = {}
+        for (const section of sections) {
+          photos[section.id] = await fetchPhotosBySection(section.id)
+        }
+        setSectionPhotos(photos)
+        setLoading(false)
+      })
       .catch(() => { setLoadError(true); setLoading(false) })
   }, [])
 
@@ -368,19 +435,60 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     if (ok) setCustomEvents(prev => prev.filter(e => e.id !== id))
   }
 
-  async function handleAddGalleryPhoto(photo: Omit<GalleryPhoto, 'id' | 'created_at'>) {
+  async function handleAddGallerySection(section: Omit<GallerySection, 'id' | 'created_at'>) {
+    if (section.is_carousel) {
+      const existing = gallerySections.find(s => s.is_carousel)
+      if (existing) {
+        await updateGallerySection(existing.id, { is_carousel: false })
+      }
+    }
+    const ok = await addGallerySection(section)
+    if (ok) {
+      const updated = await fetchGallerySections()
+      setGallerySections(updated)
+    }
+  }
+
+  async function handleUpdateGallerySection(id: string, updates: Partial<Omit<GallerySection, 'id' | 'created_at'>>) {
+    if (updates.is_carousel) {
+      const existing = gallerySections.find(s => s.is_carousel && s.id !== id)
+      if (existing) {
+        await updateGallerySection(existing.id, { is_carousel: false })
+      }
+    }
+    const ok = await updateGallerySection(id, updates)
+    if (ok) {
+      const updated = await fetchGallerySections()
+      setGallerySections(updated)
+    }
+  }
+
+  async function handleDeleteGallerySection(id: string) {
+    const ok = await deleteGallerySection(id)
+    if (ok) {
+      setGallerySections(prev => prev.filter(s => s.id !== id))
+      setSectionPhotos(prev => { const copy = { ...prev }; delete copy[id]; return copy })
+      setExpandedSections(prev => { const copy = new Set(prev); copy.delete(id); return copy })
+    }
+  }
+
+  async function handleAddPhotoToSection(photo: Omit<GalleryPhoto, 'id' | 'created_at'>) {
     const ok = await addGalleryPhoto(photo)
-    if (ok) { const updated = await fetchGalleryPhotos(); setGalleryPhotos(updated) }
+    if (ok) {
+      const sectionId = photo.section_id!
+      const updated = await fetchPhotosBySection(sectionId)
+      setSectionPhotos(prev => ({ ...prev, [sectionId]: updated }))
+    }
   }
 
-  async function handleDeleteGalleryPhoto(id: string) {
-    const ok = await deleteGalleryPhoto(id)
-    if (ok) setGalleryPhotos(prev => prev.filter(p => p.id !== id))
-  }
-
-  async function handleUpdateGalleryPhoto(id: string, updates: Partial<Omit<GalleryPhoto, 'id' | 'created_at'>>) {
-    const ok = await updateGalleryPhoto(id, updates)
-    if (ok) { const updated = await fetchGalleryPhotos(); setGalleryPhotos(updated) }
+  async function handleDeletePhotoFromSection(photoId: string, sectionId: string) {
+    const ok = await deleteGalleryPhoto(photoId)
+    if (ok) {
+      setSectionPhotos(prev => ({
+        ...prev,
+        [sectionId]: prev[sectionId].filter(p => p.id !== photoId)
+      }))
+    }
   }
 
   const monthsWithEvents = AGENDA_2026.filter(m => m.events.length > 0)
@@ -410,9 +518,9 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
               className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-bold px-4 py-2 rounded-lg text-sm transition">
               <Plus size={15} /> Adicionar Evento
             </button>
-            <button onClick={() => setShowAddGalleryModal(true)}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
-              <Plus size={15} /> Foto
+            <button onClick={() => setShowAddSectionModal(true)}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
+              <Plus size={15} /> Novo Álbum
             </button>
             <button onClick={onLogout} className="flex items-center gap-2 text-gray-500 hover:text-white text-sm transition">
               <LogOut size={15} /> Sair
@@ -490,38 +598,106 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
             </div>
           )}
 
-          {/* Galeria de Fotos */}
+          {/* Galeria — Álbuns */}
           <div className="mt-16 border-t border-white/10 pt-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold uppercase">📷 Galeria de Fotos</h2>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold uppercase">📚 Álbuns da Galeria</h2>
+              <p className="text-gray-500 text-sm mt-1">Crie álbuns, defina o carrossel e gerencie fotos dentro de cada álbum.</p>
             </div>
 
-            {galleryPhotos.length === 0 ? (
-              <p className="text-gray-500 text-sm">Nenhuma foto cadastrada. Clique no botão "Foto" acima para adicionar.</p>
+            {gallerySections.length === 0 ? (
+              <p className="text-gray-500 text-sm">Nenhum álbum criado. Clique em "Novo Álbum" acima para começar.</p>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {galleryPhotos.map((photo) => (
-                  <div key={photo.id} className="bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/10 transition">
-                    {photo.url && (
-                      <img src={photo.url} alt={photo.caption} className="w-full h-40 object-cover rounded-lg mb-3"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
-                    )}
-                    <div className="space-y-2 text-sm">
-                      {photo.caption && <p className="text-gray-300 line-clamp-2">{photo.caption}</p>}
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <span className="text-xs bg-white/10 px-2 py-1 rounded">Ordem: {photo.display_order}</span>
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        <input type="number" min="0" value={photo.display_order}
-                          onChange={(e) => handleUpdateGalleryPhoto(photo.id, { display_order: parseInt(e.target.value) || 0 })}
-                          className="flex-1 bg-[#0e0e0e] border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-amber-500" />
-                        <button onClick={() => handleDeleteGalleryPhoto(photo.id)} className="text-red-500 hover:text-red-400 p-1 transition">
-                          <Trash2 size={16} />
+              <div className="space-y-3">
+                {gallerySections.map((section) => {
+                  const isExpanded = expandedSections.has(section.id)
+                  const photos = sectionPhotos[section.id] || []
+                  return (
+                    <div key={section.id} className="border border-white/10 rounded-lg overflow-hidden">
+                      <div className="flex items-center bg-white/5 hover:bg-white/10 transition">
+                        <button
+                          onClick={() => setExpandedSections(prev => {
+                            const copy = new Set(prev)
+                            if (copy.has(section.id)) copy.delete(section.id)
+                            else copy.add(section.id)
+                            return copy
+                          })}
+                          className="flex-1 flex items-center justify-between px-4 py-3 text-left"
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-white font-bold">{section.name}</span>
+                                {section.is_carousel && <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded">📺 Carrossel</span>}
+                              </div>
+                              {section.description && <p className="text-gray-500 text-xs mt-1">{section.description}</p>}
+                              <p className="text-gray-600 text-xs mt-1">{photos.length} fotos</p>
+                            </div>
+                          </div>
+                          {isExpanded ? <ChevronUp size={16} className="text-gray-500 flex-shrink-0" /> : <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />}
                         </button>
                       </div>
+
+                      {isExpanded && (
+                        <div className="border-t border-white/10 p-4 space-y-3">
+                          {/* Seção de controles do álbum */}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setSelectedSectionForPhoto(section.id)}
+                              className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold px-3 py-2 rounded-lg text-sm transition"
+                            >
+                              <Plus size={14} /> Adicionar Foto
+                            </button>
+                            <button
+                              onClick={() => setShowAddSectionModal(true)}
+                              className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-2 rounded-lg text-sm transition"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Tem certeza que deseja deletar o álbum "${section.name}"? Todas as fotos serão removidas.`)) {
+                                  handleDeleteGallerySection(section.id)
+                                }
+                              }}
+                              className="ml-auto flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-2 rounded-lg text-sm transition"
+                            >
+                              <Trash2 size={14} /> Deletar
+                            </button>
+                          </div>
+
+                          {/* Fotos do álbum */}
+                          {photos.length === 0 ? (
+                            <p className="text-gray-600 text-sm">Nenhuma foto neste álbum</p>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {photos.map((photo) => (
+                                <div key={photo.id} className="bg-white/5 border border-white/10 rounded-lg p-2">
+                                  {photo.url && (
+                                    <img src={photo.url} alt={photo.caption} className="w-full h-32 object-cover rounded-lg mb-2"
+                                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                                  )}
+                                  <div className="space-y-1 text-xs">
+                                    {photo.caption && <p className="text-gray-300 line-clamp-1">{photo.caption}</p>}
+                                    <div className="flex items-center gap-2 text-gray-500">
+                                      <span className="bg-white/10 px-1.5 py-0.5 rounded">#{photo.display_order}</span>
+                                    </div>
+                                    <button
+                                      onClick={() => handleDeletePhotoFromSection(photo.id, section.id)}
+                                      className="w-full text-red-500 hover:text-red-400 text-xs py-1 transition"
+                                    >
+                                      Deletar
+                                    </button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
@@ -529,7 +705,8 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
       </div>
 
       {showAddModal && <AddEventModal onClose={() => setShowAddModal(false)} onAdd={handleAdd} />}
-      {showAddGalleryModal && <AddGalleryPhotoModal onClose={() => setShowAddGalleryModal(false)} onAdd={handleAddGalleryPhoto} />}
+      {showAddSectionModal && <AddGallerySectionModal onClose={() => setShowAddSectionModal(false)} onAdd={handleAddGallerySection} />}
+      {selectedSectionForPhoto && <AddPhotoToSectionModal sectionId={selectedSectionForPhoto} onClose={() => setSelectedSectionForPhoto(null)} onAdd={handleAddPhotoToSection} />}
     </>
   )
 }
