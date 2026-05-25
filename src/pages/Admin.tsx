@@ -102,7 +102,7 @@ function FormField({ label, value, onChange, placeholder, multiline = false, row
 }
 
 // ─── MODAL ADICIONAR/EDITAR ÁLBUM ─────────────
-function AddGallerySectionModal({ onClose, onAdd, section }: { onClose: () => void; onAdd: (sec: GallerySection | Omit<GallerySection, 'id' | 'created_at'>) => Promise<void>; section?: GallerySection }) {
+function AddGallerySectionModal({ onClose, onAdd, section }: { onClose: () => void; onAdd: (idOrForm: any, updates?: any) => Promise<any>; section?: GallerySection }) {
   const [form, setForm] = useState({ name: section?.name ?? '', description: section?.description ?? '', cover_url: section?.cover_url ?? '', is_carousel: section?.is_carousel ?? false, display_order: section?.display_order ?? 0 })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -111,7 +111,11 @@ function AddGallerySectionModal({ onClose, onAdd, section }: { onClose: () => vo
     e.preventDefault()
     if (!form.name.trim()) { setError('Preencha o nome do álbum.'); return }
     setSaving(true)
-    await onAdd(section ? { ...section, ...form } : form)
+    if (section) {
+      await onAdd(section.id, form)
+    } else {
+      await onAdd(form)
+    }
     setSaving(false)
     onClose()
   }
@@ -386,6 +390,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [showPast, setShowPast] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showAddSectionModal, setShowAddSectionModal] = useState(false)
+  const [editingSection, setEditingSection] = useState<GallerySection | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [selectedSectionForPhoto, setSelectedSectionForPhoto] = useState<string | null>(null)
 
@@ -649,7 +654,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                               <Plus size={14} /> Adicionar Foto
                             </button>
                             <button
-                              onClick={() => setShowAddSectionModal(true)}
+                              onClick={() => { setEditingSection(section); setShowAddSectionModal(true) }}
                               className="flex items-center gap-2 bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-2 rounded-lg text-sm transition"
                             >
                               Editar
@@ -705,7 +710,19 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
       </div>
 
       {showAddModal && <AddEventModal onClose={() => setShowAddModal(false)} onAdd={handleAdd} />}
-      {showAddSectionModal && <AddGallerySectionModal onClose={() => setShowAddSectionModal(false)} onAdd={handleAddGallerySection} />}
+      {showAddSectionModal && (
+        <AddGallerySectionModal
+          section={editingSection ?? undefined}
+          onClose={() => { setShowAddSectionModal(false); setEditingSection(null) }}
+          onAdd={async (idOrSection: any, updates?: any) => {
+            if (editingSection && updates) {
+              await handleUpdateGallerySection(idOrSection, updates)
+            } else {
+              await handleAddGallerySection(idOrSection)
+            }
+          }}
+        />
+      )}
       {selectedSectionForPhoto && <AddPhotoToSectionModal sectionId={selectedSectionForPhoto} onClose={() => setSelectedSectionForPhoto(null)} onAdd={handleAddPhotoToSection} />}
     </>
   )
