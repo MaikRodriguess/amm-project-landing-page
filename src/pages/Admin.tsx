@@ -138,8 +138,9 @@ function AddGallerySectionModal({ onClose, onAdd, section }: { onClose: () => vo
           )}
           <label className="flex items-center gap-2 text-gray-300 text-sm cursor-pointer select-none">
             <input type="checkbox" checked={form.is_carousel} onChange={e => setForm(f => ({ ...f, is_carousel: e.target.checked }))} className="accent-blue-500" />
-            📺 Usar no Carrossel da Home
+            📺 Incluir no Carrossel da Home
           </label>
+          <p className="text-gray-500 text-xs mt-1">Você pode marcar múltiplos álbuns. Todas as fotos serão misturadas no carrossel.</p>
 
           {error && <p className="text-red-400 text-xs">{error}</p>}
 
@@ -441,12 +442,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   }
 
   async function handleAddGallerySection(section: Omit<GallerySection, 'id' | 'created_at'>) {
-    if (section.is_carousel) {
-      const existing = gallerySections.find(s => s.is_carousel)
-      if (existing) {
-        await updateGallerySection(existing.id, { is_carousel: false })
-      }
-    }
     const ok = await addGallerySection(section)
     if (ok) {
       const updated = await fetchGallerySections()
@@ -455,12 +450,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   }
 
   async function handleUpdateGallerySection(id: string, updates: Partial<Omit<GallerySection, 'id' | 'created_at'>>) {
-    if (updates.is_carousel) {
-      const existing = gallerySections.find(s => s.is_carousel && s.id !== id)
-      if (existing) {
-        await updateGallerySection(existing.id, { is_carousel: false })
-      }
-    }
     const ok = await updateGallerySection(id, updates)
     if (ok) {
       const updated = await fetchGallerySections()
@@ -633,7 +622,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="text-white font-bold">{section.name}</span>
-                                {section.is_carousel && <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded">📺 Carrossel</span>}
+                                {section.is_carousel && <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded">📺 No Carrossel</span>}
                               </div>
                               {section.description && <p className="text-gray-500 text-xs mt-1">{section.description}</p>}
                               <p className="text-gray-600 text-xs mt-1">{photos.length} fotos</p>

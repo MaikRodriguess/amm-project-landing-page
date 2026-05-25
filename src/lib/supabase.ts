@@ -204,14 +204,17 @@ export async function fetchCarouselPhotos(): Promise<GalleryPhoto[]> {
     .from('gallery_sections')
     .select('id')
     .eq('is_carousel', true)
-    .limit(1)
-    .single()
 
-  if (sectionError || !sections) {
+  if (sectionError || !sections || sections.length === 0) {
     return []
   }
 
-  return fetchPhotosBySection(sections.id)
+  const allPhotos: GalleryPhoto[] = []
+  for (const section of sections) {
+    const photos = await fetchPhotosBySection(section.id)
+    allPhotos.push(...photos)
+  }
+  return allPhotos
 }
 
 export async function addGallerySection(section: Omit<GallerySection, 'id' | 'created_at'>): Promise<boolean> {
