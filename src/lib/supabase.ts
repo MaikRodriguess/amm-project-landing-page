@@ -116,3 +116,45 @@ export async function deleteCustomEvent(id: string): Promise<boolean> {
   if (error) console.error('[Supabase] deleteCustomEvent error:', error.message)
   return !error
 }
+
+// ─────────────────────────────────────────────
+// GALERIA DE FOTOS
+// ─────────────────────────────────────────────
+
+export interface GalleryPhoto {
+  id: string
+  url: string
+  caption: string
+  display_order: number
+  created_at?: string
+}
+
+export async function fetchGalleryPhotos(): Promise<GalleryPhoto[]> {
+  const { data, error } = await supabase
+    .from('gallery_photos')
+    .select('*')
+    .order('display_order')
+  if (error) {
+    console.error('[Supabase] fetchGalleryPhotos error:', error.message)
+    return []
+  }
+  return data ?? []
+}
+
+export async function addGalleryPhoto(photo: Omit<GalleryPhoto, 'id' | 'created_at'>): Promise<boolean> {
+  const { error } = await supabase.from('gallery_photos').insert(photo)
+  if (error) console.error('[Supabase] addGalleryPhoto error:', error.message)
+  return !error
+}
+
+export async function updateGalleryPhoto(id: string, updates: Partial<Omit<GalleryPhoto, 'id' | 'created_at'>>): Promise<boolean> {
+  const { error } = await supabase.from('gallery_photos').update(updates).eq('id', id)
+  if (error) console.error('[Supabase] updateGalleryPhoto error:', error.message)
+  return !error
+}
+
+export async function deleteGalleryPhoto(id: string): Promise<boolean> {
+  const { error } = await supabase.from('gallery_photos').delete().eq('id', id)
+  if (error) console.error('[Supabase] deleteGalleryPhoto error:', error.message)
+  return !error
+}

@@ -4,6 +4,7 @@ import { X, Menu } from 'lucide-react'
 const NAV_ITEMS = [
   { label: 'Home', id: 'home' },
   { label: 'Eventos', id: 'eventos' },
+  { label: 'Galeria', id: 'galeria' },
   { label: 'Materiais', id: 'materiais' },
   { label: 'Quem Somos', id: 'sobre' },
   { label: 'Como Participar', id: 'participar' },

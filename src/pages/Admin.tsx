@@ -5,6 +5,7 @@ import {
   supabase, fetchAllEventExtras, saveEventExtra, type EventExtra,
   fetchHiddenEventIds, setEventHidden,
   fetchCustomEvents, addCustomEvent, updateCustomEvent, deleteCustomEvent, type CustomEvent,
+  fetchGalleryPhotos, addGalleryPhoto, deleteGalleryPhoto, updateGalleryPhoto, type GalleryPhoto,
 } from '../lib/supabase'
 
 const ADMIN_EMAIL = 'admin@amm-brasil.com'
@@ -95,6 +96,54 @@ function FormField({ label, value, onChange, placeholder, multiline = false, row
       {multiline
         ? <textarea rows={rows} className={inputBase} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />
         : <input type="text" className={inputBase} placeholder={placeholder} value={value} onChange={e => onChange(e.target.value)} />}
+    </div>
+  )
+}
+
+// ─── MODAL ADICIONAR FOTO GALERIA ─────────────
+function AddGalleryPhotoModal({ onClose, onAdd }: { onClose: () => void; onAdd: (photo: Omit<GalleryPhoto, 'id' | 'created_at'>) => Promise<void> }) {
+  const [form, setForm] = useState({ url: '', caption: '', display_order: 0 })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.url.trim()) { setError('Preencha a URL da foto.'); return }
+    setSaving(true)
+    await onAdd(form)
+    setSaving(false)
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-[#1a1a1a] border border-green-500/30 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-white font-bold text-lg uppercase">Adicionar Foto</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-white"><X size={20} /></button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <FormField label="🖼️ URL da Foto *" value={form.url} onChange={v => setForm(f => ({ ...f, url: v }))} placeholder="https://..." />
+          {form.url && (
+            <img src={form.url} alt="Preview" className="w-full h-40 object-cover rounded-lg border border-white/10"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+          )}
+          <FormField label="📝 Legenda (opcional)" value={form.caption} onChange={v => setForm(f => ({ ...f, caption: v }))} placeholder="Descrição da foto..." />
+          <FormField label="🔢 Ordem" value={form.display_order.toString()} onChange={v => setForm(f => ({ ...f, display_order: parseInt(v) || 0 }))} placeholder="0" />
+
+          {error && <p className="text-red-400 text-xs">{error}</p>}
+
+          <div className="flex gap-3 pt-2">
+            <button type="submit" disabled={saving}
+              className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 disabled:opacity-60 text-white font-bold py-2.5 rounded-lg transition text-sm">
+              {saving ? <Loader size={15} className="animate-spin" /> : <Plus size={15} />}
+              {saving ? 'Salvando...' : 'Adicionar Foto'}
+            </button>
+            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-white/10 text-gray-400 hover:text-white rounded-lg text-sm transition">Cancelar</button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
@@ -277,16 +326,18 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [extras, setExtras] = useState<Record<string, EventExtra>>({})
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set())
   const [customEvents, setCustomEvents] = useState<CustomEvent[]>([])
+  const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [showPast, setShowPast] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showAddGalleryModal, setShowAddGalleryModal] = useState(false)
 
   const currentMonth = new Date().getMonth() + 1
 
   useEffect(() => {
-    Promise.all([fetchAllEventExtras(), fetchHiddenEventIds(), fetchCustomEvents()])
-      .then(([ex, hidden, custom]) => { setExtras(ex); setHiddenIds(hidden); setCustomEvents(custom); setLoading(false) })
+    Promise.all([fetchAllEventExtras(), fetchHiddenEventIds(), fetchCustomEvents(), fetchGalleryPhotos()])
+      .then(([ex, hidden, custom, gallery]) => { setExtras(ex); setHiddenIds(hidden); setCustomEvents(custom); setGalleryPhotos(gallery); setLoading(false) })
       .catch(() => { setLoadError(true); setLoading(false) })
   }, [])
 
@@ -317,6 +368,21 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     if (ok) setCustomEvents(prev => prev.filter(e => e.id !== id))
   }
 
+  async function handleAddGalleryPhoto(photo: Omit<GalleryPhoto, 'id' | 'created_at'>) {
+    const ok = await addGalleryPhoto(photo)
+    if (ok) { const updated = await fetchGalleryPhotos(); setGalleryPhotos(updated) }
+  }
+
+  async function handleDeleteGalleryPhoto(id: string) {
+    const ok = await deleteGalleryPhoto(id)
+    if (ok) setGalleryPhotos(prev => prev.filter(p => p.id !== id))
+  }
+
+  async function handleUpdateGalleryPhoto(id: string, updates: Partial<Omit<GalleryPhoto, 'id' | 'created_at'>>) {
+    const ok = await updateGalleryPhoto(id, updates)
+    if (ok) { const updated = await fetchGalleryPhotos(); setGalleryPhotos(updated) }
+  }
+
   const monthsWithEvents = AGENDA_2026.filter(m => m.events.length > 0)
 
   // Junta hardcoded + custom por mês
@@ -343,6 +409,10 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
             <button onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-bold px-4 py-2 rounded-lg text-sm transition">
               <Plus size={15} /> Adicionar Evento
+            </button>
+            <button onClick={() => setShowAddGalleryModal(true)}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold px-4 py-2 rounded-lg text-sm transition">
+              <Plus size={15} /> Foto
             </button>
             <button onClick={onLogout} className="flex items-center gap-2 text-gray-500 hover:text-white text-sm transition">
               <LogOut size={15} /> Sair
@@ -419,10 +489,47 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
               })}
             </div>
           )}
+
+          {/* Galeria de Fotos */}
+          <div className="mt-16 border-t border-white/10 pt-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold uppercase">📷 Galeria de Fotos</h2>
+            </div>
+
+            {galleryPhotos.length === 0 ? (
+              <p className="text-gray-500 text-sm">Nenhuma foto cadastrada. Clique no botão "Foto" acima para adicionar.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {galleryPhotos.map((photo) => (
+                  <div key={photo.id} className="bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/10 transition">
+                    {photo.url && (
+                      <img src={photo.url} alt={photo.caption} className="w-full h-40 object-cover rounded-lg mb-3"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                    )}
+                    <div className="space-y-2 text-sm">
+                      {photo.caption && <p className="text-gray-300 line-clamp-2">{photo.caption}</p>}
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <span className="text-xs bg-white/10 px-2 py-1 rounded">Ordem: {photo.display_order}</span>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <input type="number" min="0" value={photo.display_order}
+                          onChange={(e) => handleUpdateGalleryPhoto(photo.id, { display_order: parseInt(e.target.value) || 0 })}
+                          className="flex-1 bg-[#0e0e0e] border border-white/10 rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-amber-500" />
+                        <button onClick={() => handleDeleteGalleryPhoto(photo.id)} className="text-red-500 hover:text-red-400 p-1 transition">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {showAddModal && <AddEventModal onClose={() => setShowAddModal(false)} onAdd={handleAdd} />}
+      {showAddGalleryModal && <AddGalleryPhotoModal onClose={() => setShowAddGalleryModal(false)} onAdd={handleAddGalleryPhoto} />}
     </>
   )
 }
