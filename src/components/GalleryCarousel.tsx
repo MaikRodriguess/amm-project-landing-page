@@ -133,7 +133,7 @@ export default function GalleryCarousel() {
         <h2 className="text-3xl font-bold text-center mb-8 uppercase">Nossa Galeria — Momentos AMM Brasil MC</h2>
 
         <div
-          className="relative rounded-lg overflow-hidden aspect-video bg-black group cursor-pointer"
+          className="relative rounded-lg overflow-hidden min-h-80 bg-black group cursor-pointer flex items-center justify-center"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onClick={() => setSelectedPhoto(current)}
@@ -143,7 +143,7 @@ export default function GalleryCarousel() {
             key={current.id}
             src={current.url}
             alt={current.caption}
-            className="w-full h-full object-cover opacity-0 animate-fadeIn group-hover:brightness-75 transition-all duration-300"
+            className="max-w-full max-h-96 object-contain opacity-0 animate-fadeIn group-hover:brightness-75 transition-all duration-300"
             onError={(e) => {
               (e.target as HTMLImageElement).src =
                 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23333" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999" font-size="12"%3EErro ao carregar%3C/text%3E%3C/svg%3E'
