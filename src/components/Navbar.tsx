@@ -7,7 +7,6 @@ const NAV_ITEMS = [
   { label: 'Galeria', id: 'galeria' },
   { label: 'Materiais', id: 'materiais' },
   { label: 'Quem Somos', id: 'sobre' },
-  { label: 'Como Participar', id: 'participar' },
   { label: 'Contato', id: 'contato' },
 ]
 
