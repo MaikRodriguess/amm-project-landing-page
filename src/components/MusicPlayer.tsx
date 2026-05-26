@@ -9,6 +9,7 @@ export default function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [showTooltip, setShowTooltip] = useState(false)
+  const [showAutoTooltip, setShowAutoTooltip] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -38,7 +39,21 @@ export default function MusicPlayer() {
     return () => clearTimeout(timer)
   }, [])
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowAutoTooltip(true)
+      const hideTimer = setTimeout(() => {
+        setShowAutoTooltip(false)
+      }, 5000)
+      return () => clearTimeout(hideTimer)
+    }, 2000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
   const toggleSound = async () => {
+    setShowAutoTooltip(false)
+
     if (!audioRef.current) return
 
     const newMutedState = !isMuted
@@ -69,10 +84,17 @@ export default function MusicPlayer() {
       />
 
       <div className="fixed bottom-6 right-6 z-40 group">
-        {/* Tooltip */}
-        {showTooltip && (
+        {/* Tooltip de Hover */}
+        {showTooltip && !showAutoTooltip && (
           <div className="absolute bottom-16 right-0 bg-amm-dark text-amm-orange text-xs font-semibold px-3 py-2 rounded-lg whitespace-nowrap border border-amm-orange/30">
             {isMuted ? '🔇 Clique para ativar som' : MUSIC_TITLE}
+          </div>
+        )}
+
+        {/* Tooltip Automático */}
+        {showAutoTooltip && (
+          <div className="absolute bottom-16 right-0 bg-amm-orange text-black text-xs font-bold px-3 py-2 rounded-lg whitespace-nowrap border-2 border-amm-orange animate-pulse">
+            🔇 Clique para ativar som!
           </div>
         )}
 
