@@ -4,6 +4,7 @@ import { CheckCircle, Users, Heart, Zap, ExternalLink } from 'lucide-react'
 import { EventsSection } from '../components/EventsSection'
 import GalleryCarousel from '../components/GalleryCarousel'
 import GallerySection from '../components/GallerySection'
+import MusicPlayer from '../components/MusicPlayer'
 
 const VIDEO_URL = 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/AMM/video_pagina.mp4'
 
@@ -94,6 +95,7 @@ export default function Home() {
 
   return (
     <div className="w-full">
+      <MusicPlayer />
       {/* Hero Section */}
       <section id="home" className="relative w-full h-screen overflow-hidden bg-black">
         {/* Background Video */}
