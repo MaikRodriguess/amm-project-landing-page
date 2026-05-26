@@ -1,31 +1,44 @@
 import { useState, useEffect, useRef } from 'react'
-import { Music, Pause, Play, Volume2, VolumeX } from 'lucide-react'
+import { Music, Volume2, VolumeX } from 'lucide-react'
 
 const MUSIC_URL = 'https://eotntvazmeylvvdbmbtw.supabase.co/storage/v1/object/public/video/EU%20SOU%20AMM-BRASIL.mp3'
 const MUSIC_TITLE = 'Hino AMM Brasil'
 
 export default function MusicPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null)
-  const [isPlaying, setIsPlaying] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(true)
   const [showTooltip, setShowTooltip] = useState(false)
 
   useEffect(() => {
-    if (!audioRef.current) return
+    const timer = setTimeout(() => {
+      if (!audioRef.current) {
+        console.warn('AudioRef não encontrado')
+        return
+      }
 
-    const savedMutedState = localStorage.getItem('ammMusicMuted')
-    const shouldBeMuted = savedMutedState !== 'false'
+      const savedMutedState = localStorage.getItem('ammMusicMuted')
+      const shouldBeMuted = savedMutedState !== 'false'
 
-    audioRef.current.muted = shouldBeMuted
-    setIsMuted(shouldBeMuted)
+      console.log('Iniciando música...', { shouldBeMuted, url: MUSIC_URL })
 
-    audioRef.current.play().catch(() => {
-      console.log('Autoplay bloqueado pelo navegador')
-    })
-    setIsPlaying(true)
+      audioRef.current.muted = shouldBeMuted
+      setIsMuted(shouldBeMuted)
+
+      audioRef.current.play()
+        .then(() => {
+          console.log('Música tocando!')
+          setIsPlaying(true)
+        })
+        .catch((error) => {
+          console.error('Erro ao tocar música:', error.message)
+        })
+    }, 500)
+
+    return () => clearTimeout(timer)
   }, [])
 
-  const toggleSound = () => {
+  const toggleSound = async () => {
     if (!audioRef.current) return
 
     const newMutedState = !isMuted
@@ -34,10 +47,12 @@ export default function MusicPlayer() {
     localStorage.setItem('ammMusicMuted', String(!newMutedState))
 
     if (!isPlaying) {
-      audioRef.current.play().catch(() => {
-        console.log('Erro ao tocar música')
-      })
-      setIsPlaying(true)
+      try {
+        await audioRef.current.play()
+        setIsPlaying(true)
+      } catch (error) {
+        console.error('Erro ao tocar:', error)
+      }
     }
   }
 
@@ -47,8 +62,10 @@ export default function MusicPlayer() {
         ref={audioRef}
         src={MUSIC_URL}
         loop
+        crossOrigin="anonymous"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        onError={(e) => console.error('Erro ao carregar áudio:', e)}
       />
 
       <div className="fixed bottom-6 right-6 z-40 group">
