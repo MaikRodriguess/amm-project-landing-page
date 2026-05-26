@@ -416,15 +416,6 @@ export default function Home() {
               </a>
             </div>
 
-            {/* Info Box */}
-            <div className="bg-gradient-to-r from-amm-orange to-transparent p-8 rounded-lg mt-12 text-center">
-              <p className="text-2xl font-bold text-black uppercase">
-                Qualquer dúvida? Estamos aqui para ajudar!
-              </p>
-              <p className="text-gray-900 mt-2">
-                Não hesite em entrar em contato conosco através de qualquer um de nossos canais.
-              </p>
-            </div>
           </div>
         </div>
       </section>
