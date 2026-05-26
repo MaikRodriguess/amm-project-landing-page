@@ -94,6 +94,10 @@ function GalleryLightbox({
 }
 
 function AlbumsView({ sections, onSelectSection }: { sections: GallerySection[]; onSelectSection: (section: GallerySection) => void }) {
+  const [showAll, setShowAll] = useState(false)
+  const visibleSections = showAll ? sections : sections.slice(0, 3)
+  const hasMore = sections.length > 3
+
   return (
     <>
       <div className="bg-gradient-to-b from-amm-orange to-amm-dark py-8 px-8 md:px-12 rounded-lg mb-10">
@@ -102,7 +106,7 @@ function AlbumsView({ sections, onSelectSection }: { sections: GallerySection[];
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sections.map((section) => (
+        {visibleSections.map((section) => (
           <button
             key={section.id}
             onClick={() => onSelectSection(section)}
@@ -132,6 +136,17 @@ function AlbumsView({ sections, onSelectSection }: { sections: GallerySection[];
           </button>
         ))}
       </div>
+
+      {hasMore && (
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className="clipped-button clipped-button-orange text-base px-10 hover:opacity-80 transition"
+          >
+            {showAll ? 'Ver Menos' : `Ver Mais (${sections.length - 3} álbuns)`}
+          </button>
+        </div>
+      )}
     </>
   )
 }

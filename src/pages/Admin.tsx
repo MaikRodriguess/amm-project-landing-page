@@ -466,6 +466,29 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
     }
   }
 
+  async function handleMoveGallerySection(sectionId: string, direction: 'up' | 'down') {
+    const idx = gallerySections.findIndex(s => s.id === sectionId)
+    if (idx === -1) return
+    if (direction === 'up' && idx === 0) return
+    if (direction === 'down' && idx === gallerySections.length - 1) return
+
+    const newIdx = direction === 'up' ? idx - 1 : idx + 1
+    const updatedSections = [...gallerySections]
+    const oldSection = updatedSections[idx]
+    const swapSection = updatedSections[newIdx]
+
+    const oldOrder = oldSection.display_order ?? idx
+    const swapOrder = swapSection.display_order ?? newIdx
+
+    updatedSections[idx] = { ...swapSection, display_order: oldOrder }
+    updatedSections[newIdx] = { ...oldSection, display_order: swapOrder }
+
+    setGallerySections(updatedSections)
+
+    await handleUpdateGallerySection(swapSection.id, { display_order: oldOrder })
+    await handleUpdateGallerySection(oldSection.id, { display_order: swapOrder })
+  }
+
   async function handleAddPhotoToSection(photo: Omit<GalleryPhoto, 'id' | 'created_at'>) {
     const ok = await addGalleryPhoto(photo)
     if (ok) {
@@ -635,7 +658,7 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                       {isExpanded && (
                         <div className="border-t border-white/10 p-4 space-y-3">
                           {/* Seção de controles do álbum */}
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap items-center">
                             <button
                               onClick={() => setSelectedSectionForPhoto(section.id)}
                               className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold px-3 py-2 rounded-lg text-sm transition"
@@ -648,13 +671,31 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
                             >
                               Editar
                             </button>
+                            <div className="flex gap-1 ml-auto">
+                              <button
+                                onClick={() => handleMoveGallerySection(section.id, 'up')}
+                                disabled={gallerySections.findIndex(s => s.id === section.id) === 0}
+                                className="flex items-center gap-1 bg-gray-600 hover:bg-gray-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-2 py-2 rounded-lg text-sm transition"
+                                title="Mover para cima"
+                              >
+                                <ChevronUp size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleMoveGallerySection(section.id, 'down')}
+                                disabled={gallerySections.findIndex(s => s.id === section.id) === gallerySections.length - 1}
+                                className="flex items-center gap-1 bg-gray-600 hover:bg-gray-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-2 py-2 rounded-lg text-sm transition"
+                                title="Mover para baixo"
+                              >
+                                <ChevronDown size={14} />
+                              </button>
+                            </div>
                             <button
                               onClick={() => {
                                 if (confirm(`Tem certeza que deseja deletar o álbum "${section.name}"? Todas as fotos serão removidas.`)) {
                                   handleDeleteGallerySection(section.id)
                                 }
                               }}
-                              className="ml-auto flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-2 rounded-lg text-sm transition"
+                              className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-2 rounded-lg text-sm transition"
                             >
                               <Trash2 size={14} /> Deletar
                             </button>
