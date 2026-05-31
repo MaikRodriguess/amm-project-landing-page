@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Save, LogOut, ChevronDown, ChevronUp, Eye, EyeOff, CheckCircle, AlertCircle, Loader, Plus, Trash2, EyeOff as Hide, RotateCcw, X } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Save, LogOut, ChevronDown, ChevronUp, Eye, EyeOff, CheckCircle, AlertCircle, Loader, Plus, Trash2, EyeOff as Hide, RotateCcw, X, Upload, Camera } from 'lucide-react'
 import { AGENDA_2026, type EventItem } from '../components/EventsSection'
 import {
   supabase, fetchAllEventExtras, saveEventExtra, type EventExtra,
@@ -7,6 +7,7 @@ import {
   fetchCustomEvents, addCustomEvent, updateCustomEvent, deleteCustomEvent, type CustomEvent,
   fetchGallerySections, fetchPhotosBySection, addGallerySection, updateGallerySection, deleteGallerySection, type GallerySection,
   addGalleryPhoto, deleteGalleryPhoto, updateGalleryPhoto, type GalleryPhoto,
+  uploadGalleryImage,
 } from '../lib/supabase'
 
 const ADMIN_EMAIL = 'admin@amm-brasil.com'
@@ -101,6 +102,49 @@ function FormField({ label, value, onChange, placeholder, multiline = false, row
   )
 }
 
+// ─── COMPONENTE UPLOAD DE IMAGEM ─────────────────
+function ImageUploadField({ label, value, onChange, disabled = false }: {
+  label: string; value: string; onChange: (url: string) => void; disabled?: boolean
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadError('')
+    setUploading(true)
+
+    try {
+      const url = await uploadGalleryImage(file)
+      onChange(url)
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Erro ao fazer upload')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="text-gray-400 text-xs mb-1 block">{label}</label>
+      <div className="flex gap-2">
+        <input type="text" className={inputBase} placeholder="https://... ou selecione uma foto" value={value} onChange={e => onChange(e.target.value)} disabled={disabled || uploading} />
+        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || disabled}
+          className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-lg transition flex items-center gap-1 text-sm font-medium whitespace-nowrap">
+          {uploading ? <Loader size={14} className="animate-spin" /> : <Camera size={14} />}
+          {uploading ? 'Enviando...' : 'Foto'}
+        </button>
+      </div>
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" disabled={uploading} />
+      {uploadError && <p className="text-red-400 text-xs">{uploadError}</p>}
+    </div>
+  )
+}
+
 // ─── MODAL ADICIONAR/EDITAR ÁLBUM ─────────────
 function AddGallerySectionModal({ onClose, onAdd, section }: { onClose: () => void; onAdd: (idOrForm: any, updates?: any) => Promise<any>; section?: GallerySection }) {
   const [form, setForm] = useState({ name: section?.name ?? '', description: section?.description ?? '', cover_url: section?.cover_url ?? '', is_carousel: section?.is_carousel ?? false, display_order: section?.display_order ?? 0 })
@@ -131,7 +175,7 @@ function AddGallerySectionModal({ onClose, onAdd, section }: { onClose: () => vo
         <form onSubmit={handleSubmit} className="space-y-3">
           <FormField label="📁 Nome do Álbum *" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} placeholder="Ex: Carrossel, Regional RO..." />
           <FormField label="📝 Descrição" value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} placeholder="Descrição opcional..." />
-          <FormField label="🖼️ URL da Capa" value={form.cover_url} onChange={v => setForm(f => ({ ...f, cover_url: v }))} placeholder="https://..." />
+          <ImageUploadField label="🖼️ Capa do Álbum" value={form.cover_url} onChange={v => setForm(f => ({ ...f, cover_url: v }))} disabled={saving} />
           {form.cover_url && (
             <img src={form.cover_url} alt="Preview" className="w-full h-40 object-cover rounded-lg border border-white/10"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
@@ -182,7 +226,7 @@ function AddPhotoToSectionModal({ sectionId, onClose, onAdd }: { sectionId: stri
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <FormField label="🖼️ URL da Foto *" value={form.url} onChange={v => setForm(f => ({ ...f, url: v }))} placeholder="https://..." />
+          <ImageUploadField label="🖼️ Foto do Álbum *" value={form.url} onChange={v => setForm(f => ({ ...f, url: v }))} disabled={saving} />
           {form.url && (
             <img src={form.url} alt="Preview" className="w-full h-40 object-cover rounded-lg border border-white/10"
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
@@ -244,7 +288,7 @@ function AddEventModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ev: Om
 
           <FormField label="Nome do Evento *" value={form.name} onChange={v => setForm(f => ({ ...f, name: v }))} placeholder="Nome completo do evento" />
           <FormField label="Local *" value={form.location} onChange={v => setForm(f => ({ ...f, location: v }))} placeholder="Cidade/UF" />
-          <FormField label="🖼️ URL do Flyer" value={form.image} onChange={v => setForm(f => ({ ...f, image: v }))} placeholder="https://..." />
+          <ImageUploadField label="🖼️ Flyer do Evento" value={form.image} onChange={v => setForm(f => ({ ...f, image: v }))} disabled={saving} />
           <FormField label="📝 Descrição" value={form.description} onChange={v => setForm(f => ({ ...f, description: v }))} placeholder="Detalhes do evento..." multiline />
           <div className="grid grid-cols-2 gap-3">
             <FormField label="🕐 Horário" value={form.time_info} onChange={v => setForm(f => ({ ...f, time_info: v }))} placeholder="A partir das 08h" />
@@ -347,8 +391,8 @@ function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, 
       {open && !isHidden && (
         <div className="px-4 pb-4 border-t border-white/5 pt-3 space-y-3">
           {form.image && <img src={form.image} alt="Preview" className="w-full max-h-40 object-contain rounded-lg border border-white/10 bg-black" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />}
+          <ImageUploadField label="🖼️ Flyer do Evento" value={form.image} onChange={v => setForm(f => ({ ...f, image: v }))} disabled={saving} />
           {[
-            { label: '🖼️ URL do Flyer', key: 'image', ph: 'https://...', isTextarea: false },
             { label: '📝 Descrição', key: 'description', ph: 'Descreva o evento...', isTextarea: true },
             { label: '🕐 Horário', key: 'time', ph: 'A partir das 08h', isTextarea: false },
             { label: '📍 Endereço', key: 'address', ph: 'Endereço completo', isTextarea: false },

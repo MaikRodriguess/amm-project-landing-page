@@ -234,3 +234,16 @@ export async function deleteGallerySection(id: string): Promise<boolean> {
   if (error) console.error('[Supabase] deleteGallerySection error:', error.message)
   return !error
 }
+
+// ─────────────────────────────────────────────
+// UPLOAD DE IMAGENS
+// ─────────────────────────────────────────────
+
+export async function uploadGalleryImage(file: File): Promise<string> {
+  const ext = file.name.split('.').pop()
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+  const { error } = await supabase.storage.from('gallery').upload(fileName, file, { cacheControl: '3600', upsert: false })
+  if (error) throw new Error(`Upload failed: ${error.message}`)
+  const { data } = supabase.storage.from('gallery').getPublicUrl(fileName)
+  return data.publicUrl
+}

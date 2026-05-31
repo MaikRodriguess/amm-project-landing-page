@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(node test_upload.mjs)",
+      "mcp__claude_ai_Supabase__apply_migration"
     ]
   }
 }
