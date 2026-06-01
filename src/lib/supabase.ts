@@ -247,3 +247,69 @@ export async function uploadGalleryImage(file: File): Promise<string> {
   const { data } = supabase.storage.from('gallery').getPublicUrl(fileName)
   return data.publicUrl
 }
+
+// ─────────────────────────────────────────────
+// GESTÃO DE USUÁRIOS
+// ─────────────────────────────────────────────
+
+export interface AdminUser {
+  id: string
+  email: string
+  created_at: string
+  last_sign_in_at?: string
+}
+
+export async function listAdminUsers(): Promise<AdminUser[]> {
+  const { data: session } = await supabase.auth.getSession()
+  if (!session?.session?.access_token) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase.functions.invoke('admin-users', {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${session.session.access_token}` },
+  })
+
+  if (error) throw new Error(error.message)
+  return data.users || []
+}
+
+export async function createAdminUser(email: string, password: string): Promise<{ error: string | null }> {
+  const { data: session } = await supabase.auth.getSession()
+  if (!session?.session?.access_token) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase.functions.invoke('admin-users', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session.session.access_token}` },
+    body: { email, password },
+  })
+
+  if (error) return { error: error.message }
+  return { error: null }
+}
+
+export async function deleteAdminUser(userId: string): Promise<{ error: string | null }> {
+  const { data: session } = await supabase.auth.getSession()
+  if (!session?.session?.access_token) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase.functions.invoke('admin-users', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session.session.access_token}` },
+    body: { userId },
+  })
+
+  if (error) return { error: error.message }
+  return { error: null }
+}
+
+export async function resetAdminUserPassword(userId: string, password: string): Promise<{ error: string | null }> {
+  const { data: session } = await supabase.auth.getSession()
+  if (!session?.session?.access_token) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase.functions.invoke('admin-users', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${session.session.access_token}` },
+    body: { userId, password },
+  })
+
+  if (error) return { error: error.message }
+  return { error: null }
+}
