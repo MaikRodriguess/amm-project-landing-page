@@ -263,7 +263,7 @@ export async function listAdminUsers(): Promise<AdminUser[]> {
   const { data: session } = await supabase.auth.getSession()
   if (!session?.session?.access_token) throw new Error('Not authenticated')
 
-  const { data, error } = await supabase.functions.invoke('admin-users', {
+  const { data, error } = await supabase.functions.invoke('admin-users?action=list', {
     method: 'GET',
     headers: { Authorization: `Bearer ${session.session.access_token}` },
   })
@@ -276,7 +276,7 @@ export async function createAdminUser(email: string, password: string): Promise<
   const { data: session } = await supabase.auth.getSession()
   if (!session?.session?.access_token) throw new Error('Not authenticated')
 
-  const { data, error } = await supabase.functions.invoke('admin-users', {
+  const { data, error } = await supabase.functions.invoke('admin-users?action=create', {
     method: 'POST',
     headers: { Authorization: `Bearer ${session.session.access_token}` },
     body: { email, password },
@@ -290,7 +290,7 @@ export async function deleteAdminUser(userId: string): Promise<{ error: string |
   const { data: session } = await supabase.auth.getSession()
   if (!session?.session?.access_token) throw new Error('Not authenticated')
 
-  const { data, error } = await supabase.functions.invoke('admin-users', {
+  const { data, error } = await supabase.functions.invoke('admin-users?action=delete', {
     method: 'POST',
     headers: { Authorization: `Bearer ${session.session.access_token}` },
     body: { userId },
@@ -304,7 +304,7 @@ export async function resetAdminUserPassword(userId: string, password: string): 
   const { data: session } = await supabase.auth.getSession()
   if (!session?.session?.access_token) throw new Error('Not authenticated')
 
-  const { data, error } = await supabase.functions.invoke('admin-users', {
+  const { data, error } = await supabase.functions.invoke('admin-users?action=resetPassword', {
     method: 'POST',
     headers: { Authorization: `Bearer ${session.session.access_token}` },
     body: { userId, password },
