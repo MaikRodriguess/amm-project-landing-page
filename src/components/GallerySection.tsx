@@ -61,11 +61,16 @@ function GalleryLightbox({
           />
         </div>
 
-        {current.caption && (
-          <div className="bg-black/80 text-gray-200 text-center py-3 text-sm px-4 rounded-b-lg">
-            {current.caption}
+        <div className="bg-black/80 px-4 py-3 rounded-b-lg flex items-center justify-between gap-4">
+          <div className="flex-1 text-gray-200 text-center text-sm">
+            {current.caption || ' '}
           </div>
-        )}
+          {allPhotos.length > 1 && (
+            <div className="text-white text-xs font-medium whitespace-nowrap bg-black/40 px-2 py-1 rounded">
+              {currentIndex + 1} / {allPhotos.length}
+            </div>
+          )}
+        </div>
 
         {allPhotos.length > 1 && (
           <>
@@ -83,9 +88,6 @@ function GalleryLightbox({
             >
               <ChevronRight size={24} />
             </button>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full">
-              {currentIndex + 1} / {allPhotos.length}
-            </div>
           </>
         )}
       </div>
