@@ -10,7 +10,7 @@ import {
   uploadGalleryImage,
 } from '../lib/supabase'
 
-const ADMIN_EMAIL = 'admin@amm-brasil.com'
+const ADMIN_EMAIL = 'maik.rs93@hotmail.com'
 const ADMIN_PASSWORD = 'AMMsenha123'
 
 const MONTHS = [
