@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Save, LogOut, ChevronDown, ChevronUp, Eye, EyeOff, CheckCircle, AlertCircle, Loader, Plus, Trash2, EyeOff as Hide, RotateCcw, X, Upload, Camera, Key, Users } from 'lucide-react'
+import { Save, LogOut, ChevronDown, ChevronUp, Eye, EyeOff, CheckCircle, AlertCircle, Loader, Plus, Trash2, EyeOff as Hide, RotateCcw, X, Upload, Camera } from 'lucide-react'
 import { AGENDA_2026, type EventItem } from '../components/EventsSection'
 import {
   supabase, fetchAllEventExtras, saveEventExtra, type EventExtra,
@@ -8,7 +8,6 @@ import {
   fetchGallerySections, fetchPhotosBySection, addGallerySection, updateGallerySection, deleteGallerySection, type GallerySection,
   addGalleryPhoto, deleteGalleryPhoto, updateGalleryPhoto, type GalleryPhoto,
   uploadGalleryImage,
-  listAdminUsers, createAdminUser, deleteAdminUser, resetAdminUserPassword, type AdminUser,
 } from '../lib/supabase'
 
 const ADMIN_EMAIL = 'maik.rs93@hotmail.com'
@@ -142,94 +141,6 @@ function ImageUploadField({ label, value, onChange, disabled = false }: {
       </div>
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" disabled={uploading} />
       {uploadError && <p className="text-red-400 text-xs">{uploadError}</p>}
-    </div>
-  )
-}
-
-// ─── MODAL CRIAR USUÁRIO ─────────────────────
-function CreateUserModal({ onClose, onAdd }: { onClose: () => void; onAdd: (email: string, password: string) => Promise<void> }) {
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!form.email.trim() || !form.password.trim()) { setError('Preencha email e senha.'); return }
-    setSaving(true)
-    try {
-      await onAdd(form.email, form.password)
-      setForm({ email: '', password: '' })
-      onClose()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao criar usuário')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#1a1a1a] border border-blue-500/30 rounded-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-white font-bold text-lg uppercase">Novo Usuário</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white"><X size={20} /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <FormField label="📧 Email *" value={form.email} onChange={v => setForm(f => ({ ...f, email: v }))} placeholder="email@example.com" />
-          <FormField label="🔐 Senha *" value={form.password} onChange={v => setForm(f => ({ ...f, password: v }))} placeholder="Mínimo 6 caracteres" />
-          {error && <p className="text-red-400 text-xs">{error}</p>}
-          <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-bold py-2.5 rounded-lg transition text-sm">
-              {saving ? <Loader size={15} className="animate-spin" /> : <Plus size={15} />}
-              {saving ? 'Criando...' : 'Criar Usuário'}
-            </button>
-            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-white/10 text-gray-400 hover:text-white rounded-lg text-sm transition">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-// ─── MODAL REDEFINIR SENHA ───────────────────
-function ResetPasswordModal({ onClose, onReset }: { onClose: () => void; onReset: (password: string) => Promise<void> }) {
-  const [password, setPassword] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!password.trim()) { setError('Digite uma nova senha.'); return }
-    setSaving(true)
-    try {
-      await onReset(password)
-      onClose()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao redefinir senha')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#1a1a1a] border border-amber-500/30 rounded-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-white font-bold text-lg uppercase">Redefinir Senha</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white"><X size={20} /></button>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <FormField label="🔐 Nova Senha *" value={password} onChange={setPassword} placeholder="Mínimo 6 caracteres" />
-          {error && <p className="text-red-400 text-xs">{error}</p>}
-          <div className="flex gap-3 pt-2">
-            <button type="submit" disabled={saving} className="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-black font-bold py-2.5 rounded-lg transition text-sm">
-              {saving ? <Loader size={15} className="animate-spin" /> : <Save size={15} />}
-              {saving ? 'Atualizando...' : 'Redefinir'}
-            </button>
-            <button type="button" onClick={onClose} className="px-4 py-2.5 border border-white/10 text-gray-400 hover:text-white rounded-lg text-sm transition">Cancelar</button>
-          </div>
-        </form>
-      </div>
     </div>
   )
 }
@@ -527,10 +438,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [editingSection, setEditingSection] = useState<GallerySection | null>(null)
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
   const [selectedSectionForPhoto, setSelectedSectionForPhoto] = useState<string | null>(null)
-  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([])
-  const [showCreateUserModal, setShowCreateUserModal] = useState(false)
-  const [resetPasswordUserId, setResetPasswordUserId] = useState<string | null>(null)
-
   const currentMonth = new Date().getMonth() + 1
 
   useEffect(() => {
@@ -546,14 +453,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
         }
         setSectionPhotos(photos)
         setLoading(false)
-
-        // Carregar usuários separadamente para não bloquear o restante
-        try {
-          const users = await listAdminUsers()
-          setAdminUsers(users)
-        } catch (err) {
-          console.error('Erro ao carregar usuários:', err)
-        }
       })
       .catch(() => { setLoadError(true); setLoading(false) })
   }, [])
@@ -650,30 +549,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
         [sectionId]: prev[sectionId].filter(p => p.id !== photoId)
       }))
     }
-  }
-
-  async function handleCreateUser(email: string, password: string) {
-    const { error } = await createAdminUser(email, password)
-    if (!error) {
-      const updated = await listAdminUsers()
-      setAdminUsers(updated)
-    } else {
-      throw new Error(error)
-    }
-  }
-
-  async function handleDeleteUser(userId: string) {
-    const { error } = await deleteAdminUser(userId)
-    if (!error) {
-      setAdminUsers(prev => prev.filter(u => u.id !== userId))
-    } else {
-      throw new Error(error)
-    }
-  }
-
-  async function handleResetPassword(userId: string, password: string) {
-    const { error } = await resetAdminUserPassword(userId, password)
-    if (error) throw new Error(error)
   }
 
   const monthsWithEvents = AGENDA_2026.filter(m => m.events.length > 0)
@@ -905,52 +780,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
             )}
           </div>
 
-          {/* GESTÃO DE USUÁRIOS */}
-          <div className="mt-16 border-t border-white/10 pt-8">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-white uppercase flex items-center gap-2"><Users size={28} /> Gestão de Usuários</h2>
-              <button onClick={() => setShowCreateUserModal(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg transition text-sm">
-                <Plus size={16} /> Novo Usuário
-              </button>
-            </div>
-
-            <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden">
-              {adminUsers.length === 0 ? (
-                <div className="p-6 text-center text-gray-500">Nenhum usuário cadastrado</div>
-              ) : (
-                <div className="divide-y divide-white/10">
-                  {adminUsers.map(user => (
-                    <div key={user.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition">
-                      <div>
-                        <p className="text-white font-medium">{user.email}</p>
-                        <p className="text-gray-500 text-xs mt-1">Criado: {new Date(user.created_at).toLocaleDateString('pt-BR')}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setResetPasswordUserId(user.id)}
-                          title="Redefinir senha"
-                          className="flex items-center gap-1 bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded text-sm transition"
-                        >
-                          <Key size={14} /> Redefinir
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (confirm(`Tem certeza que deseja deletar ${user.email}?`)) {
-                              handleDeleteUser(user.id)
-                            }
-                          }}
-                          title="Deletar usuário"
-                          className="flex items-center gap-1 bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded text-sm transition"
-                        >
-                          <Trash2 size={14} /> Deletar
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -969,16 +798,6 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
         />
       )}
       {selectedSectionForPhoto && <AddPhotoToSectionModal sectionId={selectedSectionForPhoto} onClose={() => setSelectedSectionForPhoto(null)} onAdd={handleAddPhotoToSection} />}
-      {showCreateUserModal && <CreateUserModal onClose={() => setShowCreateUserModal(false)} onAdd={handleCreateUser} />}
-      {resetPasswordUserId && (
-        <ResetPasswordModal
-          onClose={() => setResetPasswordUserId(null)}
-          onReset={async (password) => {
-            await handleResetPassword(resetPasswordUserId, password)
-            setResetPasswordUserId(null)
-          }}
-        />
-      )}
     </>
   )
 }
