@@ -534,19 +534,26 @@ function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const currentMonth = new Date().getMonth() + 1
 
   useEffect(() => {
-    Promise.all([fetchAllEventExtras(), fetchHiddenEventIds(), fetchCustomEvents(), fetchGallerySections(), listAdminUsers()])
-      .then(async ([ex, hidden, custom, sections, users]) => {
+    Promise.all([fetchAllEventExtras(), fetchHiddenEventIds(), fetchCustomEvents(), fetchGallerySections()])
+      .then(async ([ex, hidden, custom, sections]) => {
         setExtras(ex)
         setHiddenIds(hidden)
         setCustomEvents(custom)
         setGallerySections(sections)
-        setAdminUsers(users)
         const photos: Record<string, GalleryPhoto[]> = {}
         for (const section of sections) {
           photos[section.id] = await fetchPhotosBySection(section.id)
         }
         setSectionPhotos(photos)
         setLoading(false)
+
+        // Carregar usuários separadamente para não bloquear o restante
+        try {
+          const users = await listAdminUsers()
+          setAdminUsers(users)
+        } catch (err) {
+          console.error('Erro ao carregar usuários:', err)
+        }
       })
       .catch(() => { setLoadError(true); setLoading(false) })
   }, [])
