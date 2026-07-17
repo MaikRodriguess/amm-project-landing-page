@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MapPin, Calendar, ChevronDown, ChevronUp, X, Clock, Info, Copy, Check, MessageCircle } from 'lucide-react'
+import { MapPin, Calendar, ChevronDown, ChevronUp, X, Clock, Info, Copy, Check, MessageCircle, Maximize2 } from 'lucide-react'
 import { fetchCustomEvents, type CustomEvent } from '../lib/supabase'
 
 // ─────────────────────────────────────────────
@@ -108,9 +108,11 @@ function EventModal({
   onClose: () => void
 }) {
   const [copied, setCopied] = useState(false)
+  const [imageExpanded, setImageExpanded] = useState(false)
 
   useEffect(() => {
     setCopied(false)
+    setImageExpanded(false)
   }, [event])
 
   if (!event) return null
@@ -133,17 +135,27 @@ function EventModal({
         className="relative bg-[#1e1e1e] border border-amm-orange/30 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Imagem do evento */}
+        {/* Imagem do evento — miniatura clicável que abre em tela cheia */}
         <div className="flex-shrink-0 relative">
           {event.image ? (
-            <img
-              src={event.image}
-              alt={event.name}
-              className="w-full max-h-96 object-contain bg-black"
-            />
+            <button
+              type="button"
+              onClick={() => setImageExpanded(true)}
+              className="relative block w-full bg-black cursor-zoom-in group"
+            >
+              <img
+                src={event.image}
+                alt={event.name}
+                className="w-full max-h-40 object-contain"
+              />
+              <span className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-black/60 group-hover:bg-black/80 text-white text-xs rounded-full px-2.5 py-1 transition">
+                <Maximize2 size={12} />
+                Toque para ampliar
+              </span>
+            </button>
           ) : (
-            <div className="w-full h-56 bg-gradient-to-br from-amm-orange/20 to-amm-dark flex items-center justify-center">
-              <span className="text-6xl">🏍️</span>
+            <div className="w-full h-32 bg-gradient-to-br from-amm-orange/20 to-amm-dark flex items-center justify-center">
+              <span className="text-5xl">🏍️</span>
             </div>
           )}
 
@@ -224,6 +236,26 @@ function EventModal({
           )}
         </div>
       </div>
+
+      {/* Lightbox — imagem ampliada em tela cheia */}
+      {imageExpanded && event.image && (
+        <div
+          className="fixed inset-0 z-[110] bg-black/95 flex items-center justify-center p-4 cursor-zoom-out"
+          onClick={(e) => { e.stopPropagation(); setImageExpanded(false) }}
+        >
+          <img
+            src={event.image}
+            alt={event.name}
+            className="max-w-full max-h-full object-contain"
+          />
+          <button
+            onClick={(e) => { e.stopPropagation(); setImageExpanded(false) }}
+            className="absolute top-3 right-3 bg-black/60 hover:bg-black text-white rounded-full p-1.5 transition"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
