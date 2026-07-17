@@ -31,6 +31,8 @@ export interface CustomEvent {
   description: string
   time_info: string
   address: string
+  pix_key?: string
+  whatsapp?: string
   created_at?: string
 }
 

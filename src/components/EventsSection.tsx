@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { MapPin, Calendar, ChevronDown, ChevronUp, X, Clock, Info } from 'lucide-react'
+import { MapPin, Calendar, ChevronDown, ChevronUp, X, Clock, Info, Copy, Check, MessageCircle } from 'lucide-react'
 import { fetchCustomEvents, type CustomEvent } from '../lib/supabase'
 
 // ─────────────────────────────────────────────
@@ -15,6 +15,8 @@ export interface EventItem {
   description?: string  // Descrição detalhada
   time?: string         // Ex: "A partir das 08h"
   address?: string      // Endereço mais detalhado
+  pix?: string          // Chave Pix para inscrição
+  whatsapp?: string     // Número de WhatsApp para contato
 }
 
 export interface MonthEvents {
@@ -61,6 +63,40 @@ function getUpcomingEvents(agenda: MonthEvents[] = AGENDA_2026): (EventItem & { 
   return upcoming
 }
 
+function buildWhatsAppLink(rawNumber: string, eventName: string): string {
+  let digits = rawNumber.replace(/\D/g, '')
+  // Prefixa o código do Brasil se o número foi salvo só com DDD (10-11 dígitos)
+  if (!(digits.startsWith('55') && digits.length >= 12)) {
+    digits = `55${digits}`
+  }
+  const text = encodeURIComponent(`Olá! Tenho interesse no evento "${eventName}".`)
+  return `https://wa.me/${digits}?text=${text}`
+}
+
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch {
+    // cai no fallback abaixo
+  }
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    return ok
+  } catch {
+    return false
+  }
+}
+
 // ─────────────────────────────────────────────
 // MODAL DE DETALHES
 // ─────────────────────────────────────────────
@@ -71,7 +107,22 @@ function EventModal({
   event: (EventItem & { month: string }) | null
   onClose: () => void
 }) {
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    setCopied(false)
+  }, [event])
+
   if (!event) return null
+
+  async function handleCopyPix() {
+    if (!event?.pix) return
+    const ok = await copyToClipboard(event.pix)
+    if (ok) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
 
   return (
     <div
@@ -126,6 +177,41 @@ function EventModal({
               </div>
             )}
           </div>
+
+          {/* Botões de ação: copiar Pix e contato via WhatsApp */}
+          {(event.pix || event.whatsapp) && (
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              {event.pix && (
+                <button
+                  onClick={handleCopyPix}
+                  className={`flex-1 flex items-center justify-center gap-2 font-bold text-sm px-4 py-2.5 rounded-lg transition ${
+                    copied
+                      ? 'bg-green-500 text-black'
+                      : 'bg-amm-orange hover:bg-amm-orange/80 text-black'
+                  }`}
+                >
+                  {copied ? <Check size={16} /> : <Copy size={16} />}
+                  {copied ? 'Pix copiado!' : 'Copiar Pix'}
+                </button>
+              )}
+              {event.whatsapp && (
+                <a
+                  href={buildWhatsAppLink(event.whatsapp, event.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white font-bold text-sm px-4 py-2.5 rounded-lg transition"
+                >
+                  <MessageCircle size={16} />
+                  Falar no WhatsApp
+                </a>
+              )}
+            </div>
+          )}
+          {event.pix && (
+            <p className="text-gray-500 text-xs mb-4 -mt-2 text-center sm:text-left break-all">
+              Chave Pix: <span className="text-gray-300">{event.pix}</span>
+            </p>
+          )}
 
           {event.description ? (
             <p className="text-gray-400 text-sm leading-relaxed border-t border-white/10 pt-4 whitespace-pre-line">
@@ -248,6 +334,7 @@ export function EventsSection() {
     events: customEvents.filter(ce => ce.month_num === monthData.monthNum).map(ce => ({
       date: ce.date_range, name: ce.name, location: ce.location, featured: ce.featured,
       image: ce.image, description: ce.description, time: ce.time_info, address: ce.address,
+      pix: ce.pix_key, whatsapp: ce.whatsapp,
     } as EventItem)),
   }))
 

@@ -252,7 +252,7 @@ function AddPhotoToSectionModal({ sectionId, onClose, onAdd }: { sectionId: stri
 
 // ─── MODAL ADICIONAR EVENTO ───────────────────
 function AddEventModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ev: Omit<CustomEvent, 'id' | 'created_at'>) => Promise<void> }) {
-  const [form, setForm] = useState({ month: 'Janeiro', month_num: 1, date_range: '', name: '', location: '', featured: false, image: '', description: '', time_info: '', address: '' })
+  const [form, setForm] = useState({ month: 'Janeiro', month_num: 1, date_range: '', name: '', location: '', featured: false, image: '', description: '', time_info: '', address: '', pix_key: '', whatsapp: '' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -294,6 +294,10 @@ function AddEventModal({ onClose, onAdd }: { onClose: () => void; onAdd: (ev: Om
             <FormField label="🕐 Horário" value={form.time_info} onChange={v => setForm(f => ({ ...f, time_info: v }))} placeholder="A partir das 08h" />
             <FormField label="📍 Endereço" value={form.address} onChange={v => setForm(f => ({ ...f, address: v }))} placeholder="Endereço completo" />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="💰 Chave Pix (opcional)" value={form.pix_key} onChange={v => setForm(f => ({ ...f, pix_key: v }))} placeholder="CPF, telefone, e-mail..." />
+            <FormField label="💬 WhatsApp (opcional)" value={form.whatsapp} onChange={v => setForm(f => ({ ...f, whatsapp: v }))} placeholder="(69) 99999-9999" />
+          </div>
 
           <label className="flex items-center gap-2 text-gray-300 text-sm cursor-pointer select-none">
             <input type="checkbox" checked={form.featured} onChange={e => setForm(f => ({ ...f, featured: e.target.checked }))} className="accent-amber-500" />
@@ -326,8 +330,8 @@ function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, 
   const [actionLoading, setActionLoading] = useState(false)
 
   const initialForm = isCustom && customEvent
-    ? { image: customEvent.image, description: customEvent.description, time: customEvent.time_info, address: customEvent.address }
-    : { image: extra?.image ?? '', description: extra?.description ?? '', time: extra?.time ?? '', address: extra?.address ?? '' }
+    ? { image: customEvent.image, description: customEvent.description, time: customEvent.time_info, address: customEvent.address, pix_key: customEvent.pix_key ?? '', whatsapp: customEvent.whatsapp ?? '' }
+    : { image: extra?.image ?? '', description: extra?.description ?? '', time: extra?.time ?? '', address: extra?.address ?? '', pix_key: '', whatsapp: '' }
 
   const [form, setForm] = useState(initialForm)
 
@@ -338,8 +342,8 @@ function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, 
   async function handleSave() {
     setSaving(true)
     const ok = isCustom && onSaveCustom && customId
-      ? await onSaveCustom(customId, { image: form.image, description: form.description, time_info: form.time, address: form.address })
-      : await onSave(eventId, { event_id: eventId, ...form })
+      ? await onSaveCustom(customId, { image: form.image, description: form.description, time_info: form.time, address: form.address, pix_key: form.pix_key, whatsapp: form.whatsapp })
+      : await onSave(eventId, { event_id: eventId, image: form.image, description: form.description, time: form.time, address: form.address })
     setSaving(false)
     setStatus(ok ? 'ok' : 'err')
     setTimeout(() => setStatus('idle'), 3000)
@@ -396,6 +400,11 @@ function EventEditor({ event, monthNum, month, extra, onSave, onHide, onDelete, 
             { label: '📝 Descrição', key: 'description', ph: 'Descreva o evento...', isTextarea: true },
             { label: '🕐 Horário', key: 'time', ph: 'A partir das 08h', isTextarea: false },
             { label: '📍 Endereço', key: 'address', ph: 'Endereço completo', isTextarea: false },
+            // Pix/WhatsApp só existem na tabela events_custom
+            ...(isCustom ? [
+              { label: '💰 Chave Pix (opcional)', key: 'pix_key', ph: 'CPF, telefone, e-mail...', isTextarea: false },
+              { label: '💬 WhatsApp (opcional)', key: 'whatsapp', ph: '(69) 99999-9999', isTextarea: false },
+            ] : []),
           ].map(({ label, key, ph, isTextarea }) => (
             <div key={key}>
               <label className="text-gray-400 text-xs mb-1 block">{label}</label>
